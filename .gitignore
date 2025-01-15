@@ -5,6 +5,7 @@
 
 *.out
 *.o
+*.txt
 
 lex.yy.c
 parser.tab.*

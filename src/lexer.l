@@ -1,4 +1,4 @@
-%option noyywrap nounput
+%option noyywrap nounput yylineno
 
 %{
     #include "parser.tab.h"
@@ -9,9 +9,9 @@
 
 [[:blank:]]+    { /* Ignore whitespace */ }
 #.*             { /* Ignore comments */ }
-[_a-z]+         { yylval.text = yytext; return ID; }
+\n              { /* Ignore endlines */ }
+[_a-z]+         { yylval.text = yytext; return NAME; }
 [[:digit:]]+    { yylval.number = atoi(yytext); return NUM; }
-\n              { return EOL; }
 "+"             { return ADD; }
 "-"             { return SUB; }
 "*"             { return MUL; }
@@ -26,7 +26,7 @@
 ":="            { return ASSIGN; }
 ":"             { return COLON; }
 ","             { return COMMA; }
-";"             { return SEMI; }
+";"             { return SEMICOLON; }
 "("             { return LPAREN; }
 ")"             { return RPAREN; }
 "["             { return LBRACK; }
@@ -52,6 +52,7 @@
 "ENDFOR"        { return ENDFOR; }
 "READ"          { return READ; }
 "WRITE"         { return WRITE; }
+"T"             { return T; }
 .               { return INVALID; }
 
 %%
