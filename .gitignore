@@ -1,0 +1,10 @@
+*
+!/**/
+!*.*
+
+*.out
+*.o
+
+lex.yy.c
+parser.tab.*
+
