@@ -1,10 +1,10 @@
-# compiler
+# Compiler
 
-## 🔗 Quick Links
+## 🔗Quick Links
 - [Dependencies](#dependencies)
 - [Usage](#usage)
 
-## 📦 Dependencies
+## 📦Dependencies
 
 This project uses `flex` and `bison`. To install these tools on a Debian-based distribution, use the following commands:
 ```bash
@@ -12,7 +12,7 @@ sudo apt update
 sudo apt install flex bison
 ```
 
-## 🚀 Usage
+## 🚀Usage
 
 First, compile the project using the Makefile:
 ```bash
