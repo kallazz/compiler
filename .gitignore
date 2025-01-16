@@ -10,3 +10,4 @@
 lex.yy.c
 parser.tab.*
 
+.vscode/

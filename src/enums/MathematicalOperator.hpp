@@ -1,0 +1,12 @@
+#ifndef MATHEMATICAL_OPERATOR_HPP
+#define MATHEMATICAL_OPERATOR_HPP
+
+enum class MathematicalOperator {
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE,
+    MODULO
+};
+
+#endif // MATHEMATICAL_OPERATOR_HPP

@@ -17,7 +17,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    yyparse();
+    auto tree = std::make_shared<AbstractSyntaxTree>();
+
+    yyparse(tree);
+    std::cout << "Parsed\n";
+
+    tree->printNodes();
 
     if (yyin) {
         fclose(yyin);
