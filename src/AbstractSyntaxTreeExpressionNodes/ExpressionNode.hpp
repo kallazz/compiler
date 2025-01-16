@@ -8,14 +8,14 @@
 
 class ExpressionNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    ExpressionNode(const std::shared_ptr<ValueNode> valueNode);
-    ExpressionNode(const std::shared_ptr<ValueNode> valueNode1, const std::shared_ptr<ValueNode> valueNode2_, const MathematicalOperator mathematicalOperator);
+    ExpressionNode(ValueNode* valueNode);
+    ExpressionNode(ValueNode* valueNode1, ValueNode* valueNode2_, const MathematicalOperator mathematicalOperator);
 
     void print() const override;
 
 private:
-    const std::shared_ptr<ValueNode> valueNode1_;
-    const std::optional<std::shared_ptr<ValueNode>> valueNode2_;
+    const std::unique_ptr<ValueNode> valueNode1_;
+    const std::optional<std::unique_ptr<ValueNode>> valueNode2_;
     const std::optional<MathematicalOperator> mathematicalOperator_;
 };
 

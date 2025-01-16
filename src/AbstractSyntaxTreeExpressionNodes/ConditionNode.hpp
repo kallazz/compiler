@@ -5,17 +5,16 @@
 #include "ValueNode.hpp"
 #include "../enums/ComparsionOperator.hpp"
 #include <string>
-#include <optional>
 
 class ConditionNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    ConditionNode(const std::shared_ptr<ValueNode> valueNode1, const std::shared_ptr<ValueNode> valueNode2, const ComparsionOperator comparsionOperator);
+    ConditionNode(ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator);
 
     void print() const override;
 
 private:
-    const std::shared_ptr<ValueNode> valueNode1_;
-    const std::shared_ptr<ValueNode> valueNode2_;
+    const std::unique_ptr<ValueNode> valueNode1_;
+    const std::unique_ptr<ValueNode> valueNode2_;
     const ComparsionOperator comparsionOperator_;
 };
 

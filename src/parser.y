@@ -156,26 +156,26 @@ arguments:
 ;
 
 expression:
-    value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1)); }
-    | value ADD value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), MathematicalOperator::ADD); }
-    | value SUB value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), MathematicalOperator::SUBTRACT); }
-    | value MUL value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), MathematicalOperator::MULTIPLY); }
-    | value DIV value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), MathematicalOperator::DIVIDE); }
-    | value MOD value { $$ = new ExpressionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), MathematicalOperator::MODULO); }
+    value { $$ = new ExpressionNode($1); }
+    | value ADD value { $$ = new ExpressionNode($1, $3, MathematicalOperator::ADD); }
+    | value SUB value { $$ = new ExpressionNode($1, $3, MathematicalOperator::SUBTRACT); }
+    | value MUL value { $$ = new ExpressionNode($1, $3, MathematicalOperator::MULTIPLY); }
+    | value DIV value { $$ = new ExpressionNode($1, $3, MathematicalOperator::DIVIDE); }
+    | value MOD value { $$ = new ExpressionNode($1, $3, MathematicalOperator::MODULO); }
 ;
 
 condition:
-    value EQ value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::EQUAL); }
-    | value NEQ value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::NOT_EQUAL); }
-    | value GT value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::GREATER_THAN); }
-    | value LT value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::LESS_THAN); }
-    | value GEQ value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::GREATER_THAN_OR_EQUAL); }
-    | value LEQ value { $$ = new ConditionNode(std::shared_ptr<ValueNode>($1), std::shared_ptr<ValueNode>($3), ComparsionOperator::LESS_THAN_OR_EQUAL); }
+    value EQ value { $$ = new ConditionNode($1, $3, ComparsionOperator::EQUAL); }
+    | value NEQ value { $$ = new ConditionNode($1, $3, ComparsionOperator::NOT_EQUAL); }
+    | value GT value { $$ = new ConditionNode($1, $3, ComparsionOperator::GREATER_THAN); }
+    | value LT value { $$ = new ConditionNode($1, $3, ComparsionOperator::LESS_THAN); }
+    | value GEQ value { $$ = new ConditionNode($1, $3, ComparsionOperator::GREATER_THAN_OR_EQUAL); }
+    | value LEQ value { $$ = new ConditionNode($1, $3, ComparsionOperator::LESS_THAN_OR_EQUAL); }
 ;
 
 value:
     NUM { $$ = new ValueNode($1); }
-    | identifier { $$ = new ValueNode(std::shared_ptr<IdentifierNode>($1)); }
+    | identifier { $$ = new ValueNode($1); }
 ;
 
 identifier:
