@@ -1,8 +1,9 @@
 #ifndef ARGUMENTS_NODE_HPP
 #define ARGUMENTS_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include <string>
+#include <vector>
 
 class ArgumentsNode : public AbstractSyntaxTreeExpressionNode {
 public:

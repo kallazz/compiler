@@ -1,9 +1,10 @@
 #ifndef CONDITION_NODE_HPP
 #define CONDITION_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "ValueNode.hpp"
 #include "../enums/ComparsionOperator.hpp"
+#include <memory>
 #include <string>
 
 class ConditionNode : public AbstractSyntaxTreeExpressionNode {

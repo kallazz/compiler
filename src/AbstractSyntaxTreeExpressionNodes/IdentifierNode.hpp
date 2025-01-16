@@ -1,7 +1,7 @@
 #ifndef IDENTIFIER_NODE_HPP
 #define IDENTIFIER_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include <string>
 #include <optional>
 

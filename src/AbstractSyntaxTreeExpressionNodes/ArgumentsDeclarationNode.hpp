@@ -1,7 +1,7 @@
 #ifndef ARGUMENTS_DECLARATION_NODE_HPP
 #define ARGUMENTS_DECLARATION_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include <memory>
 #include <vector>
 #include <string>

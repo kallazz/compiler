@@ -1,7 +1,7 @@
 #ifndef EXPRESSION_NODE_HPP
 #define EXPRESSION_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "ValueNode.hpp"
 #include "../enums/MathematicalOperator.hpp"
 #include <memory>

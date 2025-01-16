@@ -1,10 +1,11 @@
 #ifndef VALUE_NODE_HPP
 #define VALUE_NODE_HPP
 
-#include "AbstractSyntaxTree.hpp"
+#include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "IdentifierNode.hpp"
-#include <string>
+#include <memory>
 #include <optional>
+#include <string>
 
 class ValueNode : public AbstractSyntaxTreeExpressionNode {
 public:
