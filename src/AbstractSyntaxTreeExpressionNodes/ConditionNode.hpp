@@ -3,7 +3,7 @@
 
 #include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "ValueNode.hpp"
-#include "../enums/ComparsionOperator.hpp"
+#include "enums/ComparsionOperator.hpp"
 #include <memory>
 #include <string>
 

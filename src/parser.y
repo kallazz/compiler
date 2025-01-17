@@ -1,41 +1,64 @@
 %code requires {
     #include "AbstractSyntaxTree.hpp"
+
     #include "AbstractSyntaxTreeExpressionNodes/ArgumentsNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ArgumentsDeclarationNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ConditionNode.hpp"
-    #include "AbstractSyntaxTreeExpressionNodes/DeclarationsNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ExpressionNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/IdentifierNode.hpp"
-    #include "AbstractSyntaxTreeExpressionNodes/ProcedureCallNode.hpp"
+    #include "AbstractSyntaxTreeExpressionNodes/ProcedureHeadNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ValueNode.hpp"
+
+    #include "AbstractSyntaxTreeStatementNodes/AbstractSyntaxTreeStatementNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/AssignmentNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/CommandsNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/DeclarationsNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/ForLoopNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/IfNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/MainNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/ProcedureCallNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/ProceduresNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/ReadNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/RepeatLoopNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
+    #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
+
     #include "enums/ComparsionOperator.hpp"
     #include "enums/MathematicalOperator.hpp"
+
     #include <iostream>
     #include <memory>
-    #include <typeinfo>
+    #include <string>
 }
 
 %code {
     extern int yylineno;
     int yylex();
-    void yyerror(const std::shared_ptr<AbstractSyntaxTree> tree, const char *message);
+    void yyerror(const AbstractSyntaxTree& tree, const std::string& message);
 }
 
 %locations
 
-%parse-param { std::shared_ptr<AbstractSyntaxTree> tree }
+%parse-param { AbstractSyntaxTree& tree }
 
 %union {
     char *text;
     long long number;
+
     ArgumentsNode* argumentsNode;
     ArgumentsDeclarationNode* argumentsDeclarationNode;
     ConditionNode* conditionNode;
-    DeclarationsNode* declarationsNode;
     ExpressionNode* expressionNode;
     IdentifierNode* identifierNode;
-    ProcedureCallNode* procedureCallNode;
+    ProcedureHeadNode* procedureHeadNode;
     ValueNode* valueNode;
+
+    AbstractSyntaxTreeStatementNode* astStatementNode;
+    CommandsNode* commandsNode;
+    DeclarationsNode* declarationsNode;
+    ProcedureCallNode* procedureCallNode;
+    ProceduresNode* proceduresNode;
+    MainNode* mainNode;
 }
 
 %token <text> NAME
@@ -46,11 +69,17 @@
 %type <argumentsNode> arguments
 %type <argumentsDeclarationNode> arguments_declaration
 %type <conditionNode> condition
-%type <declarationsNode> declarations
 %type <expressionNode> expression
 %type <identifierNode> identifier
-%type <procedureCallNode> procedure_call
+%type <procedureHeadNode> procedure_head
 %type <valueNode> value
+
+%type <astStatementNode> command
+%type <commandsNode> commands
+%type <declarationsNode> declarations
+%type <procedureCallNode> procedure_call
+%type <proceduresNode> procedures
+%type <mainNode> main
 
 %left EQ NEQ
 %left GT GEQ LT LEQ
@@ -62,44 +91,57 @@
 %%
 
 whole_program:
-    procedures main
+    procedures main {
+        tree.setProceduresNode($1);
+        tree.setMainNode($2);
+    }
 ;
 
 procedures:
-    PROCEDURE procedure_head IS declarations BEGINN commands END
-    | PROCEDURE procedure_head IS BEGINN commands END
-    | /* epsilon */
+    procedures PROCEDURE procedure_head IS declarations BEGINN commands END {
+        $$ = $1;
+        $$->addProcedure($3, $5, $7);
+    }
+    | procedures PROCEDURE procedure_head IS BEGINN commands END {
+        $$ = $1;
+        $$->addProcedure($3, $6);
+    }
+    | /* epsilon */ {
+        $$ = new ProceduresNode();
+    }
 ;
 
 main:
-    PROGRAM IS declarations BEGINN commands END {
-    }
-    | PROGRAM IS BEGINN commands END {
-    }
-;
+    PROGRAM IS declarations BEGINN commands END { $$ = new MainNode($3, $5); }
+    | PROGRAM IS BEGINN commands END { $$ = new MainNode($4); }
 ;
 
 commands:
-    commands command
-    | command
+    commands command {
+        $$ = $1;
+        $$->addCommand($2);
+    }
+    | command {
+        $$ = new CommandsNode();
+        $$->addCommand($1);
+    }
 ;
 
 command:
-    identifier ASSIGN expression SEMICOLON
-    | IF condition THEN commands ELSE commands ENDIF
-    | IF condition THEN commands ENDIF
-    | WHILE condition DO commands ENDWHILE
-    | REPEAT commands UNTIL condition SEMICOLON
-    | FOR NAME FROM value TO value DO commands ENDFOR
-    | FOR NAME FROM value DOWNTO value DO commands ENDFOR
-    | procedure_call SEMICOLON
-    | READ identifier SEMICOLON
-    | WRITE value SEMICOLON
+    identifier ASSIGN expression SEMICOLON { $$ = new AssignmentNode($1, $3); }
+    | IF condition THEN commands ELSE commands ENDIF { $$ = new IfNode($2, $4, $6); }
+    | IF condition THEN commands ENDIF { $$ = new IfNode($2, $4); }
+    | WHILE condition DO commands ENDWHILE { $$ = new WhileLoopNode($2, $4); }
+    | REPEAT commands UNTIL condition SEMICOLON { $$ = new RepeatLoopNode($2, $4); }
+    | FOR NAME FROM value TO value DO commands ENDFOR { $$ = new ForLoopNode($2, $4, $6, $8, true); }
+    | FOR NAME FROM value DOWNTO value DO commands ENDFOR { $$ = new ForLoopNode($2, $4, $6, $8, false); }
+    | procedure_call SEMICOLON { $$ = $1; }
+    | READ identifier SEMICOLON { $$ = new ReadNode($2); }
+    | WRITE value SEMICOLON { $$ = new WriteNode($2); }
 ;
 
 procedure_head:
-    NAME LPAREN arguments_declaration RPAREN {
-    }
+    NAME LPAREN arguments_declaration RPAREN { $$ = new ProcedureHeadNode($1, $3); }
 ;
 
 procedure_call:
@@ -185,7 +227,7 @@ identifier:
 
 %%
 
-void yyerror(const std::shared_ptr<AbstractSyntaxTree> tree, const char *message) {
+void yyerror(const AbstractSyntaxTree& tree, const std::string& message) {
     (void) tree; // to silence unused variable compiler warning
-    fprintf(stderr, "Error at line %d: %s\n", yylineno, message);
+    std::cerr << "Error at line " << yylineno << ": " << message << '\n';
 }

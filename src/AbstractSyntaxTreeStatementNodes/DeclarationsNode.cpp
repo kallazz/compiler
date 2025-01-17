@@ -10,7 +10,7 @@ void DeclarationsNode::addDeclaration(const std::string name, long long arrayLow
 }
 
 void DeclarationsNode::print() const {
-    std::cout << "DeclarationNode: ";
+    std::cout << "DeclarationsNode: ";
     for (const auto& declaration : declarations_) {
         std::cout << declaration.name;
         if (declaration.arrayLowerBound) {

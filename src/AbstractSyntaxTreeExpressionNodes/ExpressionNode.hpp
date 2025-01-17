@@ -3,7 +3,7 @@
 
 #include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "ValueNode.hpp"
-#include "../enums/MathematicalOperator.hpp"
+#include "enums/MathematicalOperator.hpp"
 #include <memory>
 
 class ExpressionNode : public AbstractSyntaxTreeExpressionNode {

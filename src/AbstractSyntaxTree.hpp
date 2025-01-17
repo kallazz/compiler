@@ -1,18 +1,21 @@
 #ifndef ABSTRACT_SYNTAX_TREE
 #define ABSTRACT_SYNTAX_TREE
 
-#include "AbstractSyntaxTreeExpressionNodes/AbstractSyntaxTreeExpressionNode.hpp"
-#include <vector>
+#include "AbstractSyntaxTreeStatementNodes/MainNode.hpp"
+#include "AbstractSyntaxTreeStatementNodes/ProceduresNode.hpp"
+#include <memory>
 
 class AbstractSyntaxTree {
 public:
     AbstractSyntaxTree() = default;
 
-    void addNode(const std::shared_ptr<AbstractSyntaxTreeExpressionNode> node);
+    void setProceduresNode(ProceduresNode* proceduresNode);
+    void setMainNode(MainNode* mainNode);
     void printNodes() const;
 
 private:
-    std::vector<std::shared_ptr<AbstractSyntaxTreeExpressionNode>> nodes_;
+    std::unique_ptr<ProceduresNode> proceduresNode_;
+    std::unique_ptr<MainNode> mainNode_;
 };
 
 #endif // ABSTRACT_SYNTAX_TREE

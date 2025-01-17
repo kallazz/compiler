@@ -1,7 +1,7 @@
 #ifndef DECLARATIONS_NODE_HPP
 #define DECLARATIONS_NODE_HPP
 
-#include "AbstractSyntaxTreeExpressionNode.hpp"
+#include "AbstractSyntaxTreeStatementNode.hpp"
 #include <optional>
 #include <string>
 #include <vector>
@@ -12,7 +12,7 @@ struct Declaration {
     const std::optional<long long> arrayUpperBound;
 };
 
-class DeclarationsNode : public AbstractSyntaxTreeExpressionNode {
+class DeclarationsNode : public AbstractSyntaxTreeStatementNode {
 public:
     DeclarationsNode() = default;
 

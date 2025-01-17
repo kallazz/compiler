@@ -4,8 +4,9 @@
 #include <fstream>
 
 extern FILE *yyin;
+extern int yylex_destroy();
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: compiler <input_file_name> <output_file_name>";
         return 1;
@@ -17,16 +18,18 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    auto tree = std::make_shared<AbstractSyntaxTree>();
+    AbstractSyntaxTree tree;
 
     yyparse(tree);
     std::cout << "Parsed\n";
 
-    tree->printNodes();
+    tree.printNodes();
 
     if (yyin) {
         fclose(yyin);
     }
+
+    yylex_destroy();
 
     return 0;
 }
