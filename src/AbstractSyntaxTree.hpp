@@ -7,7 +7,7 @@
 
 class AbstractSyntaxTree {
 public:
-    AbstractSyntaxTree() = default;
+    AbstractSyntaxTree();
 
     void setProceduresNode(ProceduresNode* proceduresNode);
     void setMainNode(MainNode* mainNode);

@@ -3,6 +3,8 @@
 
 class AbstractSyntaxTreeStatementNode {
 public:
+    virtual ~AbstractSyntaxTreeStatementNode() = default;
+
     virtual void print() const = 0;
 };
 
