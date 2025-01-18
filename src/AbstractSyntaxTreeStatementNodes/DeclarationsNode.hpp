@@ -7,6 +7,7 @@
 #include <vector>
 
 struct Declaration {
+    const int lineNumber;
     const std::string name;
     const std::optional<long long> arrayLowerBound;
     const std::optional<long long> arrayUpperBound;
@@ -14,10 +15,11 @@ struct Declaration {
 
 class DeclarationsNode : public AbstractSyntaxTreeStatementNode {
 public:
-    DeclarationsNode() = default;
+    DeclarationsNode(const int lineNumber);
 
-    void addDeclaration(const std::string name);
-    void addDeclaration(const std::string name, long long arrayLowerBound, long long arrayUpperBound);
+    void addDeclaration(const int lineNumber, const std::string name);
+    void addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound);
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

@@ -8,8 +8,9 @@
 
 class RepeatLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
-    RepeatLoopNode(CommandsNode* commandsNode, ConditionNode* conditionNode);
+    RepeatLoopNode(const int lineNumber, CommandsNode* commandsNode, ConditionNode* conditionNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

@@ -8,9 +8,10 @@
 
 class ExpressionNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    ExpressionNode(ValueNode* valueNode);
-    ExpressionNode(ValueNode* valueNode1, ValueNode* valueNode2_, const MathematicalOperator mathematicalOperator);
+    ExpressionNode(const int lineNumber, ValueNode* valueNode);
+    ExpressionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2_, const MathematicalOperator mathematicalOperator);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

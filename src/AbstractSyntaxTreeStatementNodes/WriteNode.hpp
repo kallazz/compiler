@@ -7,8 +7,9 @@
 
 class WriteNode : public AbstractSyntaxTreeStatementNode {
 public:
-    WriteNode(ValueNode* valueNode);
+    WriteNode(const int lineNumber, ValueNode* valueNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

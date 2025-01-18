@@ -5,12 +5,12 @@
 #include "ValueNode.hpp"
 #include "enums/ComparsionOperator.hpp"
 #include <memory>
-#include <string>
 
 class ConditionNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    ConditionNode(ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator);
+    ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

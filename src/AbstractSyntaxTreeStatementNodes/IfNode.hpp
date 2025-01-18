@@ -8,8 +8,9 @@
 
 class IfNode : public AbstractSyntaxTreeStatementNode {
 public:
-    IfNode(ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode = nullptr);
+    IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode = nullptr);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

@@ -4,12 +4,12 @@
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/IdentifierNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/ExpressionNode.hpp"
-#include <string>
 
 class AssignmentNode : public AbstractSyntaxTreeStatementNode {
 public:
-    AssignmentNode(IdentifierNode* identifierNode, ExpressionNode* expressionNode);
+    AssignmentNode(const int lineNumber, IdentifierNode* identifierNode, ExpressionNode* expressionNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

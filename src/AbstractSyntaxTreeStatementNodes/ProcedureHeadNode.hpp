@@ -1,15 +1,16 @@
 #ifndef PROCEDURE_HEAD_NODE_HPP
 #define PROCEDURE_HEAD_NODE_HPP
 
-#include "AbstractSyntaxTreeExpressionNode.hpp"
+#include "AbstractSyntaxTreeStatementNode.hpp"
 #include "ArgumentsDeclarationNode.hpp"
 #include <memory>
 #include <string>
 
-class ProcedureHeadNode : public AbstractSyntaxTreeExpressionNode {
+class ProcedureHeadNode : public AbstractSyntaxTreeStatementNode {
 public:
-    ProcedureHeadNode(const std::string name, ArgumentsDeclarationNode* argumentsDeclarationNode);
+    ProcedureHeadNode(const int lineNumber, const std::string name, ArgumentsDeclarationNode* argumentsDeclarationNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

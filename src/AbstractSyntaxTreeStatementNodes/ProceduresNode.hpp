@@ -4,7 +4,7 @@
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "CommandsNode.hpp"
 #include "DeclarationsNode.hpp"
-#include "AbstractSyntaxTreeExpressionNodes/ProcedureHeadNode.hpp"
+#include "ProcedureHeadNode.hpp"
 #include <memory>
 #include <vector>
 
@@ -21,10 +21,11 @@ struct Procedure {
 
 class ProceduresNode : public AbstractSyntaxTreeStatementNode {
 public:
-    ProceduresNode() = default;
+    ProceduresNode(const int lineNumber);
 
     void addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode);
     void addProcedure(ProcedureHeadNode* procedureHeadNode, CommandsNode* commandsNode);
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

@@ -7,9 +7,10 @@
 
 class CommandsNode : public AbstractSyntaxTreeStatementNode {
 public:
-    CommandsNode() = default;
+    CommandsNode(const int lineNumber);
 
     void addCommand(AbstractSyntaxTreeStatementNode* commandNode);
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 private:
     std::vector<std::unique_ptr<AbstractSyntaxTreeStatementNode>> commandNodes_;

@@ -8,8 +8,9 @@
 
 class WhileLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
-    WhileLoopNode(ConditionNode* conditionNode, CommandsNode* commandsNode);
+    WhileLoopNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* commandsNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

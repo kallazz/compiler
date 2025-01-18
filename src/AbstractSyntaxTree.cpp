@@ -22,3 +22,17 @@ void AbstractSyntaxTree::printNodes() const {
     }
     std::cout << '\n';
 }
+
+bool AbstractSyntaxTree::fillSymbolTable() {
+    // TODO: Add procedures node
+    if (mainNode_ && !mainNode_->evaluateBySymbolTable(symbolTable_)) {
+        compilationError_ = symbolTable_.getCompilationError();
+        return false;
+    }
+    
+    return true;
+}
+
+CompilationError AbstractSyntaxTree::getCompilationError() const {
+    return compilationError_;
+}

@@ -7,8 +7,9 @@
 
 class ReadNode : public AbstractSyntaxTreeStatementNode {
 public:
-    ReadNode(IdentifierNode* identifierNode);
+    ReadNode(const int lineNumber, IdentifierNode* identifierNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

@@ -2,14 +2,15 @@
 #define PROCEDURE_CALL_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
-#include "AbstractSyntaxTreeExpressionNodes/ArgumentsNode.hpp"
+#include "ArgumentsNode.hpp"
 #include <string>
 #include <memory>
 
 class ProcedureCallNode : public AbstractSyntaxTreeStatementNode {
 public:
-    ProcedureCallNode(const std::string name, ArgumentsNode* argumentsNode);
+    ProcedureCallNode(const int lineNumber, const std::string name, ArgumentsNode* argumentsNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

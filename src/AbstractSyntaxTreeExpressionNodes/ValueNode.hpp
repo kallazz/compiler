@@ -5,13 +5,13 @@
 #include "IdentifierNode.hpp"
 #include <memory>
 #include <optional>
-#include <string>
 
 class ValueNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    ValueNode(const long long number);
-    ValueNode(IdentifierNode* identifierNode);
+    ValueNode(const int lineNumber, const long long number);
+    ValueNode(const int lineNumber, IdentifierNode* identifierNode);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

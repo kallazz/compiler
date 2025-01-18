@@ -9,8 +9,9 @@
 
 class ForLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
-    ForLoopNode(const std::string iteratorName, ValueNode* startValueNode, ValueNode* endValueNode, CommandsNode* commandsNode, bool isIteratorIncremented);
+    ForLoopNode(const int lineNumber, const std::string iteratorName, ValueNode* startValueNode, ValueNode* endValueNode, CommandsNode* commandsNode, bool isIteratorIncremented);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:

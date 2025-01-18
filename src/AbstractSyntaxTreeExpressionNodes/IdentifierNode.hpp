@@ -7,10 +7,11 @@
 
 class IdentifierNode : public AbstractSyntaxTreeExpressionNode {
 public:
-    IdentifierNode(const std::string name);
-    IdentifierNode(const std::string name, const std::string indexName);
-    IdentifierNode(const std::string name, const long long indexValue);
+    IdentifierNode(const int lineNumber, const std::string name);
+    IdentifierNode(const int lineNumber, const std::string name, const std::string indexName);
+    IdentifierNode(const int lineNumber, const std::string name, const long long indexValue);
 
+    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
     void print() const override;
 
 private:
