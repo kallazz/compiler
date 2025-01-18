@@ -5,7 +5,5 @@ ProcedureCallNode::ProcedureCallNode(const std::string name, ArgumentsNode* argu
     : name_(name), argumentsNode_(argumentsNode) {}
 
 void ProcedureCallNode::print() const {
-    std::cout << "ProcedureCallNode: ";
-
-    std::cout << "\n";
+    std::cout << "ProcedureCallNode";
 }

@@ -5,7 +5,9 @@ WhileLoopNode::WhileLoopNode(ConditionNode* conditionNode, CommandsNode* command
     : conditionNode_(conditionNode), commandsNode_(commandsNode) {}
 
 void WhileLoopNode::print() const {
-    std::cout << "WhileLoopNode: ";
-
-    std::cout << '\n';
+    std::cout << "WhileLoopNode\n{\n";
+    if (commandsNode_) {
+        commandsNode_->print();
+    }
+    std::cout << "}";
 }

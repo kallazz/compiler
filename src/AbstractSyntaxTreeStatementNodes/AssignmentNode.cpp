@@ -5,7 +5,5 @@ AssignmentNode::AssignmentNode(IdentifierNode* identifierNode, ExpressionNode* e
     : identifierNode_(identifierNode), expressionNode_(expressionNode) {}
 
 void AssignmentNode::print() const {
-    std::cout << "AssignmentNode: ";
-
-    std::cout << std::endl;
+    std::cout << "AssignmentNode";
 }

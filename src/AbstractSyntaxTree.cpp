@@ -15,7 +15,10 @@ void AbstractSyntaxTree::printNodes() const {
     if (proceduresNode_) {
         proceduresNode_->print();
     }
+    std::cout << '\n';
+
     if (mainNode_) {
         mainNode_->print();
     }
+    std::cout << '\n';
 }

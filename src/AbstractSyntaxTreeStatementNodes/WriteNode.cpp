@@ -4,7 +4,5 @@
 WriteNode::WriteNode(ValueNode* valueNode) : valueNode_(valueNode) {}
 
 void WriteNode::print() const {
-    std::cout << "WriteNode: ";
-
-    std::cout << '\n';
+    std::cout << "WriteNode";
 }

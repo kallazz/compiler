@@ -4,7 +4,5 @@
 ReadNode::ReadNode(IdentifierNode* identifierNode) : identifierNode_(identifierNode) {}
 
 void ReadNode::print() const {
-    std::cout << "ReadNode: ";
-
-    std::cout << '\n';
+    std::cout << "ReadNode";
 }

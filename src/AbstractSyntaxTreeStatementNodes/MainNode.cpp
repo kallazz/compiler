@@ -7,7 +7,9 @@ MainNode::MainNode(DeclarationsNode* declarationsNode, CommandsNode* commandsNod
 MainNode::MainNode(CommandsNode* commandsNode) : commandsNode_(commandsNode) {}
 
 void MainNode::print() const {
-    std::cout << "MainNode: ";
-
-    std::cout << '\n';
+    std::cout << "MainNode\n";
+    if (commandsNode_) {
+        commandsNode_->print();
+        std::cout << '\n';
+    }
 }

@@ -5,7 +5,9 @@ RepeatLoopNode::RepeatLoopNode(CommandsNode* commandsNode, ConditionNode* condit
     : commandsNode_(commandsNode), conditionNode_(conditionNode) {}
 
 void RepeatLoopNode::print() const {
-    std::cout << "RepeatLoopNode: ";
-
-    std::cout << "}" << std::endl;
+    std::cout << "RepeatLoopNode\n{\n";
+    if (commandsNode_) {
+        commandsNode_->print();
+    }
+    std::cout << "}";
 }

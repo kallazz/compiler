@@ -10,7 +10,5 @@ void ProceduresNode::addProcedure(ProcedureHeadNode* procedureHeadNode, Commands
 }
 
 void ProceduresNode::print() const {
-    std::cout << "ProceduresNode: ";
-
-    std::cout << "\n";
+    std::cout << "ProceduresNode\n";
 }
