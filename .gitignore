@@ -11,3 +11,6 @@ lex.yy.c
 parser.tab.*
 
 .vscode/
+
+.pytest_cache
+__pycache__/

@@ -48,7 +48,7 @@ bool SymbolTable::declareVariableWithNamePrefix(const int lineNumber, const std:
     const std::string internalName = namePrefix + name;
 
     if (table_.find(internalName) != table_.end()) {
-        compilationError_ = {"Variable `" + name + "` redeclared.", lineNumber};
+        compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
         return false;
     }
 
@@ -62,12 +62,12 @@ bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::st
     const std::string internalName = namePrefix + name;
 
     if (table_.find(internalName) != table_.end()) {
-        compilationError_ = {"Variable `" + name + "` redeclared.", lineNumber};
+        compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
         return false;
     }
 
     if (lowerBound > upperBound) {
-        compilationError_ = {"Incorrect array range in `" + name + "`. " + std::to_string(lowerBound) + " is bigger than " + std::to_string(upperBound) + ".", lineNumber};
+        compilationError_ = {"incorrect array range in `" + name + "`. " + std::to_string(lowerBound) + " is bigger than " + std::to_string(upperBound) + ".", lineNumber};
         return false;
     }
 
@@ -84,13 +84,13 @@ bool SymbolTable::checkIfVariableExistsWithNamePrefix(const int lineNumber, cons
 
     const auto it = table_.find(internalName);
     if (it == table_.end()) {
-        compilationError_ = {"Variable `" + name + "` was not declared.", lineNumber};
+        compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
     const SymbolInfo& symbolInfo = it->second;
     if (symbolInfo.arrayRange) {
-        compilationError_ = {"Variable `" + name + "` is an array. [] need to be used in assignment.", lineNumber};
+        compilationError_ = {"variable `" + name + "` is an array. [] need to be used in assignment.", lineNumber};
         return false;
     }
 
@@ -102,13 +102,13 @@ bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const s
 
     const auto it = table_.find(internalName);
     if (it == table_.end()) {
-        compilationError_ = {"Variable `" + name + "` was not declared.", lineNumber};
+        compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
     const SymbolInfo& symbolInfo = it->second;
     if (!symbolInfo.arrayRange) {
-        compilationError_ = {"Variable `" + name + "` is not an array. [] cannot be used in assignment.", lineNumber};
+        compilationError_ = {"variable `" + name + "` is not an array. [] cannot be used in assignment.", lineNumber};
         return false;
     }
 
@@ -116,7 +116,7 @@ bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const s
         const auto& [lowerBound, upperBound] = *symbolInfo.arrayRange;
         if (*arrayIndex < lowerBound || *arrayIndex > upperBound) {
             compilationError_ = {
-                "Array index out of bounds for variable `" + name + "`. Index: " + std::to_string(*arrayIndex) + ", Range: [" + std::to_string(lowerBound) + ", " + std::to_string(upperBound) + "].",
+                "array index out of bounds for variable `" + name + "`. Index: " + std::to_string(*arrayIndex) + ", Range: [" + std::to_string(lowerBound) + ", " + std::to_string(upperBound) + "].",
                 lineNumber
             };
             return false;
@@ -131,7 +131,7 @@ bool SymbolTable::checkIfVariableOrArrayExistsWithNamePrefix(const int lineNumbe
 
     const auto it = table_.find(internalName);
     if (it == table_.end()) {
-        compilationError_ = {"Variable `" + name + "` was not declared.", lineNumber};
+        compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
