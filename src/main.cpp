@@ -24,11 +24,12 @@ int main(int argc, char *argv[]) {
 
     AbstractSyntaxTree tree;
     const int parsingResult = yyparse(tree);
-    yylex_destroy();
 
     if (yyin) {
         fclose(yyin);
     }
+
+    yylex_destroy();
 
     if (parsingResult == 1) {
         return 1;

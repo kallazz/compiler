@@ -148,37 +148,41 @@ command:
     | IF condition THEN commands ENDIF { $$ = new IfNode(@1.first_line, $2, $4); }
     | WHILE condition DO commands ENDWHILE { $$ = new WhileLoopNode(@1.first_line, $2, $4); }
     | REPEAT commands UNTIL condition SEMICOLON { $$ = new RepeatLoopNode(@1.first_line, $2, $4); }
-    | FOR NAME FROM value TO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, true); }
-    | FOR NAME FROM value DOWNTO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, false); }
+    | FOR NAME FROM value TO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, true); free($2); }
+    | FOR NAME FROM value DOWNTO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, false); free($2); }
     | procedure_call SEMICOLON { $$ = $1; }
     | READ identifier SEMICOLON { $$ = new ReadNode(@1.first_line, $2); }
     | WRITE value SEMICOLON { $$ = new WriteNode(@1.first_line, $2); }
 ;
 
 procedure_head:
-    NAME LPAREN arguments_declaration RPAREN { $$ = new ProcedureHeadNode(@1.first_line, $1, $3); }
+    NAME LPAREN arguments_declaration RPAREN { $$ = new ProcedureHeadNode(@1.first_line, $1, $3); free($1); }
 ;
 
 procedure_call:
-    NAME LPAREN arguments RPAREN { $$ = new ProcedureCallNode(@1.first_line, $1, $3); }
+    NAME LPAREN arguments RPAREN { $$ = new ProcedureCallNode(@1.first_line, $1, $3); free($1); }
 ;
 
 declarations:
     declarations COMMA NAME {
         $1->addDeclaration(@3.first_line, $3);
         $$ = $1;
+        free($3);
     }
     | declarations COMMA NAME LBRACK NUM COLON NUM RBRACK {
         $1->addDeclaration(@3.first_line, $3, $5, $7);
         $$ = $1;
+        free($3);
     }
     | NAME {
         $$ = new DeclarationsNode(@1.first_line);
         $$->addDeclaration(@1.first_line, $1);
+        free($1);
     }
     | NAME LBRACK NUM COLON NUM RBRACK {
         $$ = new DeclarationsNode(@1.first_line);
         $$->addDeclaration(@1.first_line, $1, $3, $5);
+        free($1);
     }
 ;
 
@@ -186,18 +190,22 @@ arguments_declaration:
     arguments_declaration COMMA NAME {
         $$ = $1;
         $$->addArgumentDeclaration(@3.first_line, $3, false);
+        free($3);
     }
     | arguments_declaration COMMA T NAME {
         $$ = $1;
         $$->addArgumentDeclaration(@3.first_line, $4, true);
+        free($4);
     }
     | NAME {
         $$ = new ArgumentsDeclarationNode(@1.first_line);
         $$->addArgumentDeclaration(@1.first_line, $1, false);
+        free($1);
     }
     | T NAME {
         $$ = new ArgumentsDeclarationNode(@1.first_line);
         $$->addArgumentDeclaration(@1.first_line, $2, true);
+        free($2);
     }
 ;
 
@@ -205,10 +213,12 @@ arguments:
     arguments COMMA NAME {
         $1->addArgument(@3.first_line, $3);
         $$ = $1;
+        free($3);
     }
     | NAME {
         $$ = new ArgumentsNode(@1.first_line);
         $$->addArgument(@1.first_line, $1);
+        free($1);
     }
 ;
 
@@ -236,9 +246,9 @@ value:
 ;
 
 identifier:
-    NAME { $$ = new IdentifierNode(@1.first_line, $1); }
-    | NAME LBRACK NAME RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); }
-    | NAME LBRACK NUM RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); }
+    NAME { $$ = new IdentifierNode(@1.first_line, $1); free($1); }
+    | NAME LBRACK NAME RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); free($1); free($3); }
+    | NAME LBRACK NUM RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); free($1); }
 
 %%
 
