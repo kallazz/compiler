@@ -11,8 +11,11 @@ public:
     MainNode(const int lineNumber, DeclarationsNode* declarationsNode, CommandsNode* commandsNode);
     MainNode(const int lineNumber, CommandsNode* commandsNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<DeclarationsNode>& getDeclarationsNode() const;
+    const std::unique_ptr<CommandsNode>& getCommandsNode() const;
 
 private:
     const std::unique_ptr<DeclarationsNode> declarationsNode_;

@@ -11,8 +11,12 @@ public:
     IdentifierNode(const int lineNumber, const std::string name, const std::string indexName);
     IdentifierNode(const int lineNumber, const std::string name, const long long indexValue);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::string& getName() const;
+    const std::optional<std::string>& getIndexName() const;
+    const std::optional<long long>& getIndexValue() const;
 
 private:
     const std::string name_;

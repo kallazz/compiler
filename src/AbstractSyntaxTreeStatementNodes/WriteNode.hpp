@@ -9,8 +9,10 @@ class WriteNode : public AbstractSyntaxTreeStatementNode {
 public:
     WriteNode(const int lineNumber, ValueNode* valueNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<ValueNode>& getValueNode() const;
 
 private:
     const std::unique_ptr<ValueNode> valueNode_;

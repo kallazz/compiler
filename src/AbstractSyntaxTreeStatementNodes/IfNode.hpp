@@ -10,8 +10,12 @@ class IfNode : public AbstractSyntaxTreeStatementNode {
 public:
     IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode = nullptr);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<ConditionNode>& getConditionNode() const;
+    const std::unique_ptr<CommandsNode>& getThenCommandsNode() const;
+    const std::unique_ptr<CommandsNode>& getElseCommandsNode() const;
 
 private:
     const std::unique_ptr<ConditionNode> conditionNode_;

@@ -11,12 +11,16 @@ public:
     ExpressionNode(const int lineNumber, ValueNode* valueNode);
     ExpressionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2_, const MathematicalOperator mathematicalOperator);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<ValueNode>& getValueNode1() const;
+    const std::unique_ptr<ValueNode>& getValueNode2() const;
+    const std::optional<MathematicalOperator>& getMathematicalOperator() const;
 
 private:
     const std::unique_ptr<ValueNode> valueNode1_;
-    const std::optional<std::unique_ptr<ValueNode>> valueNode2_;
+    const std::unique_ptr<ValueNode> valueNode2_;
     const std::optional<MathematicalOperator> mathematicalOperator_;
 };
 

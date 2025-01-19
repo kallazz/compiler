@@ -4,16 +4,8 @@
 IfNode::IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), conditionNode_(conditionNode), thenCommandsNode_(thenCommandsNode), elseCommandsNode_(elseCommandsNode) {}
 
-bool IfNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (thenCommandsNode_ && !thenCommandsNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    if (elseCommandsNode_ && !elseCommandsNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool IfNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitIfNode(*this);
 }
 
 void IfNode::print() const {
@@ -28,4 +20,16 @@ void IfNode::print() const {
         elseCommandsNode_->print();
         std::cout << "!}";
     }
+}
+
+const std::unique_ptr<ConditionNode>& IfNode::getConditionNode() const {
+    return conditionNode_;
+}
+
+const std::unique_ptr<CommandsNode>& IfNode::getThenCommandsNode() const {
+    return thenCommandsNode_;
+}
+
+const std::unique_ptr<CommandsNode>& IfNode::getElseCommandsNode() const {
+    return elseCommandsNode_;
 }

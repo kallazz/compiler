@@ -12,22 +12,8 @@ void DeclarationsNode::addDeclaration(const int lineNumber, const std::string na
     declarations_.push_back({lineNumber, name, arrayLowerBound, arrayUpperBound});
 }
 
-bool DeclarationsNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    for (const auto& declaration : declarations_) {
-        bool wasEvaluationSuccessful = false;
-
-        if (declaration.arrayLowerBound && declaration.arrayUpperBound) {
-            wasEvaluationSuccessful = symbolTable.declareArray(declaration.lineNumber, declaration.name, *declaration.arrayLowerBound, *declaration.arrayUpperBound);
-        } else {
-            wasEvaluationSuccessful = symbolTable.declareVariable(declaration.lineNumber, declaration.name);
-        }
-
-        if (!wasEvaluationSuccessful) {
-            return false;
-        }
-    }
-
-    return true;
+bool DeclarationsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitDeclarationsNode(*this);
 }
 
 void DeclarationsNode::print() const {
@@ -41,4 +27,8 @@ void DeclarationsNode::print() const {
     }
 
     std::cout << '\n';
+}
+
+const std::vector<Declaration>& DeclarationsNode::getDeclarations() const {
+    return declarations_;
 }

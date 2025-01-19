@@ -6,16 +6,8 @@ MainNode::MainNode(const int lineNumber, DeclarationsNode* declarationsNode, Com
 
 MainNode::MainNode(const int lineNumber, CommandsNode* commandsNode) : AbstractSyntaxTreeStatementNode(lineNumber), commandsNode_(commandsNode) {}
 
-bool MainNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (declarationsNode_ && !declarationsNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    if (commandsNode_ && !commandsNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool MainNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitMainNode(*this);
 }
 
 void MainNode::print() const {
@@ -24,4 +16,12 @@ void MainNode::print() const {
         commandsNode_->print();
         std::cout << '\n';
     }
+}
+
+const std::unique_ptr<DeclarationsNode>& MainNode::getDeclarationsNode() const {
+    return declarationsNode_;
+}
+
+const std::unique_ptr<CommandsNode>& MainNode::getCommandsNode() const {
+    return commandsNode_;
 }

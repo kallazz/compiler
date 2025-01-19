@@ -11,16 +11,8 @@ IdentifierNode::IdentifierNode(const int lineNumber, const std::string name, con
 IdentifierNode::IdentifierNode(const int lineNumber, const std::string name, long long indexValue)
     : AbstractSyntaxTreeExpressionNode(lineNumber), name_(name), indexName_(std::nullopt), indexValue_(indexValue) {}
 
-bool IdentifierNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (!indexName_ && !indexValue_) {
-        return symbolTable.checkIfVariableExists(getLineNumber(), name_);
-    }
-
-    if (!indexName_) {
-        return symbolTable.checkIfArrayExists(getLineNumber(), name_, indexValue_);
-    }
-
-    return symbolTable.checkIfArrayExists(getLineNumber(), name_, std::nullopt);
+bool IdentifierNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitIdentifierNode(*this);
 }
 
 void IdentifierNode::print() const {
@@ -33,4 +25,16 @@ void IdentifierNode::print() const {
     }
 
     std::cout << '\n';
+}
+
+const std::string& IdentifierNode::getName() const {
+    return name_;
+}
+
+const std::optional<std::string>& IdentifierNode::getIndexName() const {
+    return indexName_;
+}
+
+const std::optional<long long>& IdentifierNode::getIndexValue() const {
+    return indexValue_;
 }

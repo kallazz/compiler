@@ -9,8 +9,11 @@ class AssignmentNode : public AbstractSyntaxTreeStatementNode {
 public:
     AssignmentNode(const int lineNumber, IdentifierNode* identifierNode, ExpressionNode* expressionNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<IdentifierNode>& getIdentifierNode() const;
+    const std::unique_ptr<ExpressionNode>& getExpressionNode() const;
 
 private:
     const std::unique_ptr<IdentifierNode> identifierNode_;

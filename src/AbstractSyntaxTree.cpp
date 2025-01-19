@@ -1,7 +1,8 @@
 #include "AbstractSyntaxTree.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
-AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr) {}
+AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr), symbolTable_() {}
 
 void AbstractSyntaxTree::setProceduresNode(ProceduresNode* proceduresNode) {
     proceduresNode_ = std::unique_ptr<ProceduresNode>(proceduresNode);
@@ -24,8 +25,9 @@ void AbstractSyntaxTree::printNodes() const {
 }
 
 bool AbstractSyntaxTree::fillSymbolTable() {
+    SemanticAnalysisVisitor semanticAnalysisVisitor(symbolTable_);
     // TODO: Add procedures node
-    if (mainNode_ && !mainNode_->evaluateBySymbolTable(symbolTable_)) {
+    if (mainNode_ && !mainNode_->accept(semanticAnalysisVisitor)) {
         compilationError_ = symbolTable_.getCompilationError();
         return false;
     }

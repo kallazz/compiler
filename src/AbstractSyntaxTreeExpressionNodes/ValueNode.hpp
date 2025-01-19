@@ -11,12 +11,15 @@ public:
     ValueNode(const int lineNumber, const long long number);
     ValueNode(const int lineNumber, IdentifierNode* identifierNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::optional<long long>& getNumber() const;
+    const std::unique_ptr<IdentifierNode>& getIdentifierNode() const;
 
 private:
     const std::optional<long long> number_;
-    const std::optional<std::unique_ptr<IdentifierNode>> identifierNode_;
+    const std::unique_ptr<IdentifierNode> identifierNode_;
 };
 
 #endif // VALUE_NODE_HPP

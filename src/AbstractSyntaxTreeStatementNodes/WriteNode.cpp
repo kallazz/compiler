@@ -3,14 +3,14 @@
 
 WriteNode::WriteNode(const int lineNumber, ValueNode* valueNode) : AbstractSyntaxTreeStatementNode(lineNumber), valueNode_(valueNode) {}
 
-bool WriteNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (valueNode_ && !valueNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool WriteNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitWriteNode(*this);
 }
 
 void WriteNode::print() const {
     std::cout << "WriteNode";
+}
+
+const std::unique_ptr<ValueNode>& WriteNode::getValueNode() const {
+    return valueNode_;
 }

@@ -10,8 +10,11 @@ class ProcedureCallNode : public AbstractSyntaxTreeStatementNode {
 public:
     ProcedureCallNode(const int lineNumber, const std::string name, ArgumentsNode* argumentsNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::string& getName() const;
+    const std::unique_ptr<ArgumentsNode>& getArgumentsNode() const;
 
 private:
     const std::string name_;

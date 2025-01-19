@@ -1,7 +1,7 @@
 #ifndef ABSTRACT_SYNTAX_TREE_STATEMENT_NODE
 #define ABSTRACT_SYNTAX_TREE_STATEMENT_NODE
 
-class SymbolTable;
+#include "SemanticAnalysisVisitor.hpp"
 
 class AbstractSyntaxTreeStatementNode {
 public:
@@ -9,7 +9,8 @@ public:
     virtual ~AbstractSyntaxTreeStatementNode() = default;
 
     int getLineNumber() const { return lineNumber_; }
-    virtual bool evaluateBySymbolTable(SymbolTable&) const = 0;
+
+    virtual bool accept(SemanticAnalysisVisitor&) const = 0;
     virtual void print() const = 0;
 
 private:

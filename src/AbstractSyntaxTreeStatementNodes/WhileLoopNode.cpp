@@ -4,16 +4,8 @@
 WhileLoopNode::WhileLoopNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* commandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), conditionNode_(conditionNode), commandsNode_(commandsNode) {}
 
-bool WhileLoopNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (conditionNode_ && !conditionNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    if (commandsNode_ && !commandsNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool WhileLoopNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitWhileLoopNode(*this);
 }
 
 void WhileLoopNode::print() const {
@@ -22,4 +14,12 @@ void WhileLoopNode::print() const {
         commandsNode_->print();
     }
     std::cout << "}";
+}
+
+const std::unique_ptr<ConditionNode>& WhileLoopNode::getConditionNode() const {
+    return conditionNode_;
+}
+
+const std::unique_ptr<CommandsNode>& WhileLoopNode::getCommandsNode() const {
+    return commandsNode_;
 }

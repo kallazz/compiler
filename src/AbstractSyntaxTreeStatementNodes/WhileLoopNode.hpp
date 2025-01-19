@@ -10,8 +10,11 @@ class WhileLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
     WhileLoopNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* commandsNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<ConditionNode>& getConditionNode() const;
+    const std::unique_ptr<CommandsNode>& getCommandsNode() const;
 
 private:
     const std::unique_ptr<ConditionNode> conditionNode_;

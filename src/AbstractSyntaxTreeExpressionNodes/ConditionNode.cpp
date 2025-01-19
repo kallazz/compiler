@@ -5,20 +5,24 @@
 ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator)
     : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode1), valueNode2_(valueNode2), comparsionOperator_(comparsionOperator) {}
 
-bool ConditionNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (valueNode1_ && !valueNode1_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    if (valueNode2_ && !valueNode2_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool ConditionNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitConditionNode(*this);
 }
 
 void ConditionNode::print() const {
     std::cout << "ValueNode: ";
 
     std::cout << '\n';
+}
+
+const std::unique_ptr<ValueNode>& ConditionNode::getValueNode1() const {
+    return valueNode1_;
+}
+
+const std::unique_ptr<ValueNode>& ConditionNode::getValueNode2() const {
+    return valueNode2_;
+}
+
+const std::optional<ComparsionOperator> ConditionNode::getComparisonOperator() const {
+    return comparsionOperator_;
 }

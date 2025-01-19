@@ -10,8 +10,11 @@ class RepeatLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
     RepeatLoopNode(const int lineNumber, CommandsNode* commandsNode, ConditionNode* conditionNode);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<CommandsNode>& getCommandsNode() const;
+    const std::unique_ptr<ConditionNode>& getConditionNode() const;
 
 private:
     const std::unique_ptr<CommandsNode> commandsNode_;

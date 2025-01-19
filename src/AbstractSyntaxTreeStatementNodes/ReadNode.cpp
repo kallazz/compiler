@@ -3,14 +3,14 @@
 
 ReadNode::ReadNode(const int lineNumber, IdentifierNode* identifierNode) : AbstractSyntaxTreeStatementNode(lineNumber), identifierNode_(identifierNode) {}
 
-bool ReadNode::evaluateBySymbolTable(SymbolTable& symbolTable) const {
-    if (identifierNode_ && !identifierNode_->evaluateBySymbolTable(symbolTable)) {
-        return false;
-    }
-
-    return true;
+bool ReadNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
+    return semanticAnalysisVisitor.visitReadNode(*this);
 }
 
 void ReadNode::print() const {
     std::cout << "ReadNode";
+}
+
+const std::unique_ptr<IdentifierNode>& ReadNode::getIdentifierNode() const {
+    return identifierNode_;
 }

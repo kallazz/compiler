@@ -15,8 +15,11 @@ public:
     ArgumentsNode(const int lineNumber);
 
     void addArgument(const int lineNumber, const std::string name);
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::vector<Argument>& getArguments() const;
 
 private:
     std::vector<Argument> arguments_;

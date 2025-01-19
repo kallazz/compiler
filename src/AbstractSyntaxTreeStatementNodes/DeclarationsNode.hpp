@@ -19,8 +19,11 @@ public:
 
     void addDeclaration(const int lineNumber, const std::string name);
     void addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound);
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::vector<Declaration>& getDeclarations() const;
 
 private:
     std::vector<Declaration> declarations_;

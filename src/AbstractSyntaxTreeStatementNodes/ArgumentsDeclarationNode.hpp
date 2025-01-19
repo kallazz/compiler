@@ -17,8 +17,11 @@ public:
     ArgumentsDeclarationNode(const int lineNumber);
 
     void addArgumentDeclaration(const int lineNumber, const std::string name, const bool isArray);
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::vector<ArgumentDeclaration>& getArgumentDeclarations() const;
 
 private:
     std::vector<ArgumentDeclaration> argumentDeclarations_;

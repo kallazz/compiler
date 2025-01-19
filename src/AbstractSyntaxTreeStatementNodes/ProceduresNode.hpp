@@ -25,8 +25,11 @@ public:
 
     void addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode);
     void addProcedure(ProcedureHeadNode* procedureHeadNode, CommandsNode* commandsNode);
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::vector<std::unique_ptr<Procedure>>& getProcedures() const;
 
 private:
     std::vector<std::unique_ptr<Procedure>> procedures_;

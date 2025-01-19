@@ -10,8 +10,12 @@ class ConditionNode : public AbstractSyntaxTreeExpressionNode {
 public:
     ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator);
 
-    bool evaluateBySymbolTable(SymbolTable& symbolTable) const override;
+    bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
+
+    const std::unique_ptr<ValueNode>& getValueNode1() const;
+    const std::unique_ptr<ValueNode>& getValueNode2() const;
+    const std::optional<ComparsionOperator> getComparisonOperator() const;
 
 private:
     const std::unique_ptr<ValueNode> valueNode1_;
