@@ -2,6 +2,7 @@
 #define SEMANTIC_ANALYSIS_VISITOR_HPP
 
 #include "SymbolTable.hpp"
+#include <optional>
 
 class ConditionNode;
 class ExpressionNode;
@@ -32,8 +33,8 @@ public:
     bool visitIdentifierNode(const IdentifierNode& identifierNode);
     bool visitValueNode(const ValueNode& valueNode);
 
-    bool visitArgumentsDeclarationNode(const ArgumentsDeclarationNode& argumentsDeclarationNode);
-    bool visitArgumentsNode(const ArgumentsNode& argumentsNode);
+    bool visitArgumentsDeclarationNode(const ArgumentsDeclarationNode&);
+    bool visitArgumentsNode(const ArgumentsNode&);
     bool visitAssignmentNode(const AssignmentNode& assignmentNode);
     bool visitCommandsNode(const CommandsNode& commandsNode);
     bool visitDeclarationsNode(const DeclarationsNode& declarationsNode);
@@ -49,7 +50,10 @@ public:
     bool visitWriteNode(const WriteNode& writeNode);
 
 private:
+    bool isProcedureBeingProcessed();
+
     SymbolTable& symbolTable_;
+    std::optional<int> currentProcedureIndex_;
 };
 
 #endif // SEMANTIC_ANALYSIS_VISITOR_HPP

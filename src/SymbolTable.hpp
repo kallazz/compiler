@@ -2,13 +2,21 @@
 #define SYMBOL_TABLE_HPP
 
 #include "CompilationError.hpp"
+#include "enums/ArgumentType.hpp"
+#include "structs/Argument.hpp"
+#include "structs/ArgumentDeclaration.hpp"
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
 
-struct SymbolInfo {
+struct VariableInfo {
     const long long address;
     const std::optional<std::pair<long long, long long>> arrayRange;
+};
+
+struct ProcedureInfo {
+    const std::map<std::string, std::pair<ArgumentType, long long>> argumentNameToTypeAndAddress;
 };
 
 class SymbolTable {
@@ -27,8 +35,8 @@ public:
     bool checkIfArrayExistsInProcedure(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const int procedureIndex);
     bool checkIfVariableOrArrayExistsInProcedure(const int lineNumber, const std::string& name, const int procedureIndex); // this is only for handling arguments in procedure calls
 
-    // TODO: declare procedure(with types?)
-    // TODO: check if procedure exists
+    bool declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations, const int procedureIndex);
+    bool checkIfProcedureExists(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments);
 
     CompilationError getCompilationError() const;
 
@@ -39,7 +47,8 @@ private:
     bool checkIfArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix, const std::optional<long long> arrayIndex);
     bool checkIfVariableOrArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix);
 
-    std::map<std::string, SymbolInfo> table_;
+    std::map<std::string, VariableInfo> variableTable_;
+    std::map<std::string, ProcedureInfo> procedureTable_;
     long long currentAddress_;
     CompilationError compilationError_;
 };

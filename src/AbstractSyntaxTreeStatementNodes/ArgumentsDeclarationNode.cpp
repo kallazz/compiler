@@ -5,7 +5,8 @@
 ArgumentsDeclarationNode::ArgumentsDeclarationNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
 void ArgumentsDeclarationNode::addArgumentDeclaration(const int lineNumber, const std::string name, const bool isArray) {
-    argumentDeclarations_.push_back({lineNumber, name, isArray});
+    const ArgumentType argumentType = (isArray) ? ArgumentType::ARRAY : ArgumentType::NUMBER;
+    argumentDeclarations_.push_back({lineNumber, name, argumentType});
 }
 
 bool ArgumentsDeclarationNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {

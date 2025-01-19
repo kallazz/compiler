@@ -12,11 +12,13 @@ struct Procedure {
     const std::unique_ptr<ProcedureHeadNode> procedureHeadNode;
     const std::unique_ptr<DeclarationsNode> declarationsNode;
     const std::unique_ptr<CommandsNode> commandsNode;
+    const int procedureIndex;
 
-    Procedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode)
+    Procedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode, const int procedureIndex)
         : procedureHeadNode(std::move(procedureHeadNode)),
           declarationsNode(std::move(declarationsNode)),
-          commandsNode(std::move(commandsNode)) {}
+          commandsNode(std::move(commandsNode)),
+          procedureIndex(procedureIndex) {}
 };
 
 class ProceduresNode : public AbstractSyntaxTreeStatementNode {

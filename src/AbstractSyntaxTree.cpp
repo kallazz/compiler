@@ -26,7 +26,12 @@ void AbstractSyntaxTree::printNodes() const {
 
 bool AbstractSyntaxTree::fillSymbolTable() {
     SemanticAnalysisVisitor semanticAnalysisVisitor(symbolTable_);
-    // TODO: Add procedures node
+
+    if (proceduresNode_ && !proceduresNode_->accept(semanticAnalysisVisitor)) {
+        compilationError_ = symbolTable_.getCompilationError();
+        return false;
+    }
+
     if (mainNode_ && !mainNode_->accept(semanticAnalysisVisitor)) {
         compilationError_ = symbolTable_.getCompilationError();
         return false;

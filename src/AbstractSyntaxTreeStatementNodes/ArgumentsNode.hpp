@@ -2,13 +2,10 @@
 #define ARGUMENTS_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
+#include "structs/Argument.hpp"
 #include <string>
 #include <vector>
 
-struct Argument {
-    const int lineNumber;
-    const std::string name;
-};
 
 class ArgumentsNode : public AbstractSyntaxTreeStatementNode {
 public:

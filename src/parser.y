@@ -34,7 +34,7 @@
 %code {
     extern int yylineno;
     int yylex();
-    void yyerror(const AbstractSyntaxTree& tree, const std::string& message);
+    void yyerror(const AbstractSyntaxTree&, const std::string& message);
 }
 
 %locations
@@ -252,7 +252,6 @@ identifier:
 
 %%
 
-void yyerror(const AbstractSyntaxTree& tree, const std::string& message) {
-    (void) tree; // to silence unused variable compiler warning
+void yyerror(const AbstractSyntaxTree&, const std::string& message) {
     std::cerr << "Error at line " << yylineno << ": " << message << '\n';
 }

@@ -2,15 +2,12 @@
 #define ARGUMENTS_DECLARATION_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
+#include "enums/ArgumentType.hpp"
+#include "structs/ArgumentDeclaration.hpp"
 #include <memory>
 #include <vector>
 #include <string>
 
-struct ArgumentDeclaration {
-    const int lineNumber;
-    const std::string name;
-    const bool isArray;
-};
 
 class ArgumentsDeclarationNode : public AbstractSyntaxTreeStatementNode {
 public:

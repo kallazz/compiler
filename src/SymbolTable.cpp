@@ -44,15 +44,88 @@ bool SymbolTable::checkIfVariableOrArrayExistsInProcedure(const int lineNumber, 
     return checkIfVariableOrArrayExistsWithNamePrefix(lineNumber, name, std::to_string(procedureIndex));
 }
 
+bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations, const int procedureIndex) {
+    if (procedureTable_.find(name) != procedureTable_.end()) {
+        compilationError_ = {"redeclaration of procedure `" + name + "`.", lineNumber};
+        return false;
+    }
+
+    std::map<std::string, std::pair<ArgumentType, long long>> argumentNameToTypeAndAddress;
+    for (const auto& argumentDeclaration : argumentDeclarations) {
+        if (argumentDeclaration.name == name) {
+            compilationError_ = {"argument with the same name as procedure `" + name + "`.", argumentDeclaration.lineNumber};
+            return false;
+        }
+
+        if (!declareVariableInProcedure(argumentDeclaration.lineNumber, argumentDeclaration.name, procedureIndex)) {
+            return false;
+        }
+
+        argumentNameToTypeAndAddress.insert({argumentDeclaration.name, {argumentDeclaration.argumentType, currentAddress_ - 1}});
+    }
+
+    procedureTable_.insert({name, {argumentNameToTypeAndAddress}});
+
+    return true;
+}
+
+bool SymbolTable::checkIfProcedureExists(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments) {
+    const auto it = procedureTable_.find(name);
+    if (it == procedureTable_.end()) {
+        compilationError_ = {"procedure `" + name + "` was not declared.", lineNumber};
+        return false;
+    }
+
+    const auto& procedureArgumentNameToTypeAndAddress = it->second.argumentNameToTypeAndAddress;
+    const size_t actualNumberOfArguments = arguments.size();
+    const size_t expectedNumberOfArguments = procedureArgumentNameToTypeAndAddress.size();
+
+    if (actualNumberOfArguments < expectedNumberOfArguments) {
+        compilationError_ = {"not enough arguments provided to `" + name + "`. Expected: " + std::to_string(expectedNumberOfArguments) + ", Got: " + std::to_string(actualNumberOfArguments) + ".", lineNumber};
+        return false;
+    }
+    if (actualNumberOfArguments > expectedNumberOfArguments) {
+        compilationError_ = {"too many arguments provided to `" + name + "`. Expected: " + std::to_string(expectedNumberOfArguments) + ", Got: " + std::to_string(actualNumberOfArguments) + ".", lineNumber};
+        return false;
+    }
+
+    int i = 0;
+    for (const auto& keyAndValue : procedureArgumentNameToTypeAndAddress) {
+        const auto& [expectedArgumentType, _] = keyAndValue.second;
+
+        const auto it2 = variableTable_.find(arguments[i].name);
+        if (it2 == variableTable_.end()) {
+            compilationError_ = {"variable `" + arguments[i].name + "` was not declared.", arguments[i].lineNumber};
+            return false;
+        }
+
+        const ArgumentType actualArgumentType = (it2->second.arrayRange) ? ArgumentType::ARRAY : ArgumentType::NUMBER;
+        if (actualArgumentType != expectedArgumentType) {
+            compilationError_ = {"argument `" + arguments[i].name + "` has incorrect type. Expected: " + toString(expectedArgumentType) + ", Got: " + toString(actualArgumentType) + "." , arguments[i].lineNumber};
+            return false;
+
+        }
+
+        i++;
+    }
+
+    return true;
+}
+
 bool SymbolTable::declareVariableWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
     const std::string internalName = namePrefix + name;
 
-    if (table_.find(internalName) != table_.end()) {
+    if (variableTable_.find(internalName) != variableTable_.end()) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
         return false;
     }
 
-    table_.insert({internalName, {currentAddress_, std::nullopt}});
+    if (procedureTable_.find(name) != procedureTable_.end()) {
+        compilationError_ = {"variable with the same name as procedure `" + name + "`.", lineNumber};
+        return false;
+    }
+
+    variableTable_.insert({internalName, {currentAddress_, std::nullopt}});
     currentAddress_++;
 
     return true;
@@ -61,8 +134,13 @@ bool SymbolTable::declareVariableWithNamePrefix(const int lineNumber, const std:
 bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix, const long long lowerBound, const long long upperBound) {
     const std::string internalName = namePrefix + name;
 
-    if (table_.find(internalName) != table_.end()) {
+    if (variableTable_.find(internalName) != variableTable_.end()) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
+        return false;
+    }
+
+    if (procedureTable_.find(name) != procedureTable_.end()) {
+        compilationError_ = {"variable with the same name as procedure `" + name + "`.", lineNumber};
         return false;
     }
 
@@ -73,7 +151,7 @@ bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::st
 
     const long long arraySize = upperBound - lowerBound + 1;
 
-    table_.insert({internalName, {currentAddress_, std::make_pair(lowerBound, upperBound)}});
+    variableTable_.insert({internalName, {currentAddress_, std::make_pair(lowerBound, upperBound)}});
     currentAddress_ += arraySize;
 
     return true;
@@ -82,14 +160,14 @@ bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::st
 bool SymbolTable::checkIfVariableExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
     const std::string internalName = namePrefix + name;
 
-    const auto it = table_.find(internalName);
-    if (it == table_.end()) {
+    const auto it = variableTable_.find(internalName);
+    if (it == variableTable_.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
-    const SymbolInfo& symbolInfo = it->second;
-    if (symbolInfo.arrayRange) {
+    const VariableInfo& variableInfo = it->second;
+    if (variableInfo.arrayRange) {
         compilationError_ = {"variable `" + name + "` is an array. [] need to be used in assignment.", lineNumber};
         return false;
     }
@@ -100,20 +178,20 @@ bool SymbolTable::checkIfVariableExistsWithNamePrefix(const int lineNumber, cons
 bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix, const std::optional<long long> arrayIndex) {
     const std::string internalName = namePrefix + name;
 
-    const auto it = table_.find(internalName);
-    if (it == table_.end()) {
+    const auto it = variableTable_.find(internalName);
+    if (it == variableTable_.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
-    const SymbolInfo& symbolInfo = it->second;
-    if (!symbolInfo.arrayRange) {
+    const VariableInfo& variableInfo = it->second;
+    if (!variableInfo.arrayRange) {
         compilationError_ = {"variable `" + name + "` is not an array. [] cannot be used in assignment.", lineNumber};
         return false;
     }
 
     if (arrayIndex) {
-        const auto& [lowerBound, upperBound] = *symbolInfo.arrayRange;
+        const auto& [lowerBound, upperBound] = *variableInfo.arrayRange;
         if (*arrayIndex < lowerBound || *arrayIndex > upperBound) {
             compilationError_ = {
                 "array index out of bounds for variable `" + name + "`. Index: " + std::to_string(*arrayIndex) + ", Range: [" + std::to_string(lowerBound) + ", " + std::to_string(upperBound) + "].",
@@ -129,8 +207,8 @@ bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const s
 bool SymbolTable::checkIfVariableOrArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
     const std::string internalName = namePrefix + name;
 
-    const auto it = table_.find(internalName);
-    if (it == table_.end()) {
+    const auto it = variableTable_.find(internalName);
+    if (it == variableTable_.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
