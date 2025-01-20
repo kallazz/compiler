@@ -5,6 +5,8 @@ import pytest
 
 from .config import INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME
 
+_CORRECT_PROGRAMS_DIR = "correct-programs"
+
 
 def _run_symbol_table_error_test(input_code: str, expected_error_message: str) -> None:
     with open(INPUT_FILENAME, "w") as input_file:
@@ -30,7 +32,7 @@ def _run_symbol_table_working_test(input_code: str) -> None:
 
 
 @pytest.mark.parametrize("second_declaration", ["n", "n[1:10]"])
-def test_redeclaration_of_variable(second_declaration):
+def test_redeclaration_of_number_variable(second_declaration):
     input_code = f"PROGRAM IS x, n, {second_declaration} BEGIN READ n; END"
     expected_error_message = "Error at line 1: redeclaration of variable `n`."
 
@@ -64,6 +66,20 @@ def test_incorrect_declaration_of_array():
 @pytest.mark.parametrize("undeclared_variable_name", ["n", "n[1]"])
 def test_variable_not_declared(undeclared_variable_name):
     input_code = f"PROGRAM IS x, y BEGIN READ {undeclared_variable_name}; END"
+    expected_error_message = "Error at line 1: variable `n` was not declared."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_variable_not_declared_in_brackets():
+    input_code = f"PROGRAM IS t[-10:10] BEGIN READ t[n]; END"
+    expected_error_message = "Error at line 1: variable `n` was not declared."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_variable_not_declared_in_brackets_in_procedure():
+    input_code = f"PROCEDURE proc(x) IS t[-10:10] BEGIN READ t[n]; END PROGRAM IS x BEGIN READ x; END"
     expected_error_message = "Error at line 1: variable `n` was not declared."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
@@ -232,4 +248,42 @@ def test_procedures_calling_each_other_in_correct_order_with_correct_arguments()
     _run_symbol_table_working_test(input_code)
 
 
-# def test_procedure_called_in_procedure():
+@pytest.mark.parametrize("variable_declaration", ["i", "i[-10:10]"])
+def test_for_loop_iterator_named_like_variable_in_main(variable_declaration):
+    input_code = f"PROGRAM IS {variable_declaration}, n BEGIN FOR i FROM 1 TO n DO WRITE i; ENDFOR END"
+    expected_error_message = "Error at line 1: redeclaration of variable `i`."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize(
+    "arguments, variable_declarations", [("i", "n"), ("T i", "n"), ("x", "i, n"), ("x", "n, i[-10:10]")]
+)
+def test_for_loop_iterator_named_like_symbol_in_procedure(arguments, variable_declarations):
+    input_code = f"PROCEDURE proc ({arguments}) IS {variable_declarations} BEGIN FOR i FROM 1 TO n DO WRITE i; ENDFOR END PROGRAM IS a BEGIN READ a; END"
+    expected_error_message = "Error at line 1: redeclaration of variable `i`."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_iterator_passed_to_procedure():
+    input_code = f"PROCEDURE proc (a, b, T t) IS BEGIN READ a; END PROGRAM IS n, x, y[-2:-1] BEGIN FOR i FROM 1 TO n DO proc(x, i, y); ENDFOR END"
+    expected_error_message = "Error at line 1: iterator variable `i` cannot be passed to procedure."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("command", ["READ i;", "i := 10;"])
+def test_iterator_modified(command):
+    input_code = f"PROGRAM IS n BEGIN FOR i FROM 1 TO n DO {command} ENDFOR END"
+    expected_error_message = "Error at line 1: modification of iterator variable `i` is not allowed."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("correct_program_file_name", os.listdir(_CORRECT_PROGRAMS_DIR))
+def test_correct_programs(correct_program_file_name):
+    with open(os.path.join(_CORRECT_PROGRAMS_DIR, correct_program_file_name), "r") as file:
+        input_code = file.read()
+
+    _run_symbol_table_working_test(input_code)

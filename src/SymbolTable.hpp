@@ -13,10 +13,17 @@
 struct VariableInfo {
     const long long address;
     const std::optional<std::pair<long long, long long>> arrayRange;
+    const bool isIterator = false;
+};
+
+struct ArgumentInfo {
+    const std::string name;
+    const ArgumentType type;
+    const long long address;
 };
 
 struct ProcedureInfo {
-    const std::map<std::string, std::pair<ArgumentType, long long>> argumentTable;
+    const std::vector<ArgumentInfo> argumentInfos;
     std::map<std::string, VariableInfo> variableTable;
 };
 
@@ -24,34 +31,39 @@ class SymbolTable {
 public:
     SymbolTable();
 
-    bool declareNumberVariableInMain(const int lineNumber, const std::string& name);
+    bool declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator=false);
     bool declareArrayVariableInMain(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound);
-    bool checkIfNumberVariableExistsInMain(const int lineNumber, const std::string& name);
+    bool checkIfNumberVariableExistsInMain(const int lineNumber, const std::string& name, const bool willVariableBeModified);
     bool checkIfArrayVariableExistsInMain(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex);
 
-    bool declareNumberVariableInProcedure(const int lineNumber, const std::string& name, const std::string& procedureName);
+    bool declareNumberVariableInProcedure(const int lineNumber, const std::string& name, const std::string& procedureName, const bool isIterator=false);
     bool declareArrayVariableInProcedure(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, const std::string& procedureName);
-    bool checkIfNumberVariableExistsInProcedure(const int lineNumber, const std::string& name, const std::string& procedureName);
+    bool checkIfNumberVariableExistsInProcedure(const int lineNumber, const std::string& name, const bool willVariableBeModified, const std::string& procedureName);
     bool checkIfArrayVariableExistsInProcedure(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const std::string& procedureName);
 
     bool declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations);
-    bool checkIfProcedureExists(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments, const std::optional<std::string> scopeProcedureName);
+    bool verifyProcedureCall(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments, const std::optional<std::string> scopeProcedureName);
+
+    void removeVariableFromMain(const std::string& name);
+    void removeVariableFromProcedure(const std::string& name, const std::string& procedureName);
 
     CompilationError getCompilationError() const;
 
 private:
-    bool declareNumberVariable(const int lineNumber, const std::string& name, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::map<std::string, std::pair<ArgumentType, long long>>>> argumentTable);
-    bool declareArrayVariable(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::map<std::string, std::pair<ArgumentType, long long>>>> argumentTable);
-    bool checkIfNumberVariableExists(const int lineNumber, const std::string& name, const std::map<std::string, VariableInfo>& variableTable);
+    bool declareNumberVariable(const int lineNumber, const std::string& name, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos, const bool isIterator);
+    bool declareArrayVariable(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos);
+    bool checkIfNumberVariableExists(const int lineNumber, const std::string& name, const std::map<std::string, VariableInfo>& variableTable, const bool willVariableBeModified);
     bool checkIfArrayVariableExists(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const std::map<std::string, VariableInfo>& variableTable);
-    bool checkIfNumberVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::map<std::string, std::pair<ArgumentType, long long>>& argumentTable);
-    bool checkIfArrayVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::map<std::string, std::pair<ArgumentType, long long>>& argumentTable);
-    std::optional<ArgumentType> checkIfVariableExistsAndGetItsType(const std::string& name, const std::optional<std::string> scopeProcedureName);
+    bool checkIfNumberVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::vector<ArgumentInfo>& argumentInfos);
+    bool checkIfArrayVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::vector<ArgumentInfo>& argumentInfos);
+    std::optional<std::pair<bool, ArgumentType>> checkIfVariableExistsAndGetItsInfo(const std::string& name, const std::optional<std::string> scopeProcedureName);
+    std::optional<ArgumentInfo> findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos);
 
     std::map<std::string, VariableInfo> mainVariableTable_;
     std::map<std::string, ProcedureInfo> procedureTable_;
     long long currentAddress_;
     CompilationError compilationError_;
+    bool shouldReturnErrorInstantly_;
 };
 
 #endif // SYMBOL_TABLE_HPP

@@ -55,6 +55,7 @@ private:
 
     SymbolTable& symbolTable_;
     std::optional<std::string> currentProcedureName_;
+    bool willVariableBeModified_;
 };
 
 #endif // SEMANTIC_ANALYSIS_VISITOR_HPP
