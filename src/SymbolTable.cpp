@@ -4,81 +4,84 @@ constexpr long long FIRST_AVAILABLE_ADDRESS = 1;
 
 SymbolTable::SymbolTable() : currentAddress_(FIRST_AVAILABLE_ADDRESS) {}
 
-bool SymbolTable::declareVariable(const int lineNumber, const std::string& name) {
-    return declareVariableWithNamePrefix(lineNumber, name, "");
+bool SymbolTable::declareNumberVariableInMain(const int lineNumber, const std::string& name) {
+    return declareNumberVariable(lineNumber, name, mainVariableTable_, std::nullopt);
 }
 
-bool SymbolTable::declareArray(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound) {
-    return declareArrayWithNamePrefix(lineNumber, name, "", lowerBound, upperBound);
+bool SymbolTable::declareArrayVariableInMain(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound) {
+    return declareArrayVariable(lineNumber, name, lowerBound, upperBound, mainVariableTable_, std::nullopt);
 }
 
-bool SymbolTable::checkIfVariableExists(const int lineNumber, const std::string& name) {
-    return checkIfVariableExistsWithNamePrefix(lineNumber, name, "");
+bool SymbolTable::checkIfNumberVariableExistsInMain(const int lineNumber, const std::string& name) {
+    return checkIfNumberVariableExists(lineNumber, name, mainVariableTable_);
 }
 
-bool SymbolTable::checkIfArrayExists(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex) {
-    return checkIfArrayExistsWithNamePrefix(lineNumber, name, "", arrayIndex);
+bool SymbolTable::checkIfArrayVariableExistsInMain(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex) {
+    return checkIfArrayVariableExists(lineNumber, name, arrayIndex, mainVariableTable_);
 }
 
-bool SymbolTable::checkIfVariableOrArrayExists(const int lineNumber, const std::string& name) {
-    return checkIfVariableOrArrayExistsWithNamePrefix(lineNumber, name, "");
+bool SymbolTable::declareNumberVariableInProcedure(const int lineNumber, const std::string& name, const std::string& procedureName) {
+    auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentTable = procedureTable_.at(procedureName).argumentTable;
+    return declareNumberVariable(lineNumber, name, procedureVariableTable, procedureArgumentTable);
 }
 
-bool SymbolTable::declareVariableInProcedure(const int lineNumber, const std::string& name, const int procedureIndex) {
-    return declareVariableWithNamePrefix(lineNumber, name, std::to_string(procedureIndex));
+bool SymbolTable::declareArrayVariableInProcedure(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, const std::string& procedureName) {
+    auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentTable = procedureTable_.at(procedureName).argumentTable;
+    return declareArrayVariable(lineNumber, name, lowerBound, upperBound, procedureVariableTable, procedureArgumentTable);
 }
 
-bool SymbolTable::declareArrayInProcedure(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, const int procedureIndex) {
-    return declareArrayWithNamePrefix(lineNumber, name, std::to_string(procedureIndex), lowerBound, upperBound);
+bool SymbolTable::checkIfNumberVariableExistsInProcedure(const int lineNumber, const std::string& name, const std::string& procedureName) {
+    const auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentTable = procedureTable_.at(procedureName).argumentTable;
+    return checkIfNumberVariableExists(lineNumber, name, procedureVariableTable) || checkIfNumberVariableExistsInProcedureArguments(lineNumber, name, procedureArgumentTable);
 }
 
-bool SymbolTable::checkIfVariableExistsInProcedure(const int lineNumber, const std::string& name, const int procedureIndex) {
-    return checkIfVariableExistsWithNamePrefix(lineNumber, name, std::to_string(procedureIndex));
+bool SymbolTable::checkIfArrayVariableExistsInProcedure(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const std::string& procedureName) {
+    const auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentTable = procedureTable_.at(procedureName).argumentTable;
+    return checkIfArrayVariableExists(lineNumber, name, arrayIndex, procedureVariableTable) || checkIfArrayVariableExistsInProcedureArguments(lineNumber, name, procedureArgumentTable);
 }
 
-bool SymbolTable::checkIfArrayExistsInProcedure(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const int procedureIndex) {
-    return checkIfArrayExistsWithNamePrefix(lineNumber, name, std::to_string(procedureIndex), arrayIndex);
-}
 
-bool SymbolTable::checkIfVariableOrArrayExistsInProcedure(const int lineNumber, const std::string& name, const int procedureIndex) {
-    return checkIfVariableOrArrayExistsWithNamePrefix(lineNumber, name, std::to_string(procedureIndex));
-}
-
-bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations, const int procedureIndex) {
+bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations) {
     if (procedureTable_.find(name) != procedureTable_.end()) {
         compilationError_ = {"redeclaration of procedure `" + name + "`.", lineNumber};
         return false;
     }
 
-    std::map<std::string, std::pair<ArgumentType, long long>> argumentNameToTypeAndAddress;
+    std::map<std::string, std::pair<ArgumentType, long long>> argumentTable;
     for (const auto& argumentDeclaration : argumentDeclarations) {
         if (argumentDeclaration.name == name) {
             compilationError_ = {"argument with the same name as procedure `" + name + "`.", argumentDeclaration.lineNumber};
             return false;
         }
 
-        if (!declareVariableInProcedure(argumentDeclaration.lineNumber, argumentDeclaration.name, procedureIndex)) {
+        if (argumentTable.find(argumentDeclaration.name) != argumentTable.end()) {
+            compilationError_ = {"redeclaration of argument `" + argumentDeclaration.name + "`.", lineNumber};
             return false;
         }
 
-        argumentNameToTypeAndAddress.insert({argumentDeclaration.name, {argumentDeclaration.argumentType, currentAddress_ - 1}});
+        argumentTable.insert({argumentDeclaration.name, {argumentDeclaration.argumentType, currentAddress_}});
+        currentAddress_++;
     }
 
-    procedureTable_.insert({name, {argumentNameToTypeAndAddress}});
+    procedureTable_.insert({name, {argumentTable, std::map<std::string, VariableInfo>()}});
 
     return true;
 }
 
-bool SymbolTable::checkIfProcedureExists(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments) {
+bool SymbolTable::checkIfProcedureExists(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments, const std::optional<std::string> scopeProcedureName) {
     const auto it = procedureTable_.find(name);
     if (it == procedureTable_.end()) {
         compilationError_ = {"procedure `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
-    const auto& procedureArgumentNameToTypeAndAddress = it->second.argumentNameToTypeAndAddress;
+    const auto& argumentTable = it->second.argumentTable;
     const size_t actualNumberOfArguments = arguments.size();
-    const size_t expectedNumberOfArguments = procedureArgumentNameToTypeAndAddress.size();
+    const size_t expectedNumberOfArguments = argumentTable.size();
 
     if (actualNumberOfArguments < expectedNumberOfArguments) {
         compilationError_ = {"not enough arguments provided to `" + name + "`. Expected: " + std::to_string(expectedNumberOfArguments) + ", Got: " + std::to_string(actualNumberOfArguments) + ".", lineNumber};
@@ -90,20 +93,18 @@ bool SymbolTable::checkIfProcedureExists(const int lineNumber, const std::string
     }
 
     int i = 0;
-    for (const auto& keyAndValue : procedureArgumentNameToTypeAndAddress) {
+    for (const auto& keyAndValue : argumentTable) {
         const auto& [expectedArgumentType, _] = keyAndValue.second;
 
-        const auto it2 = variableTable_.find(arguments[i].name);
-        if (it2 == variableTable_.end()) {
+        const std::optional actualArgumentType = checkIfVariableExistsAndGetItsType(arguments[i].name, scopeProcedureName);
+        if (!actualArgumentType) {
             compilationError_ = {"variable `" + arguments[i].name + "` was not declared.", arguments[i].lineNumber};
             return false;
         }
 
-        const ArgumentType actualArgumentType = (it2->second.arrayRange) ? ArgumentType::ARRAY : ArgumentType::NUMBER;
-        if (actualArgumentType != expectedArgumentType) {
-            compilationError_ = {"argument `" + arguments[i].name + "` has incorrect type. Expected: " + toString(expectedArgumentType) + ", Got: " + toString(actualArgumentType) + "." , arguments[i].lineNumber};
+        if (*actualArgumentType != expectedArgumentType) {
+            compilationError_ = {"argument `" + arguments[i].name + "` has incorrect type. Expected: " + toString(expectedArgumentType) + ", Got: " + toString(*actualArgumentType) + "." , arguments[i].lineNumber};
             return false;
-
         }
 
         i++;
@@ -112,10 +113,8 @@ bool SymbolTable::checkIfProcedureExists(const int lineNumber, const std::string
     return true;
 }
 
-bool SymbolTable::declareVariableWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
-    const std::string internalName = namePrefix + name;
-
-    if (variableTable_.find(internalName) != variableTable_.end()) {
+bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string& name, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::map<std::string, std::pair<ArgumentType, long long>>>> argumentTable) {
+    if ((variableTable.find(name) != variableTable.end()) || (argumentTable && (argumentTable->get().find(name) != argumentTable->get().end()))) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
         return false;
     }
@@ -125,16 +124,14 @@ bool SymbolTable::declareVariableWithNamePrefix(const int lineNumber, const std:
         return false;
     }
 
-    variableTable_.insert({internalName, {currentAddress_, std::nullopt}});
+    variableTable.insert({name, {currentAddress_, std::nullopt}});
     currentAddress_++;
 
     return true;
 }
 
-bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix, const long long lowerBound, const long long upperBound) {
-    const std::string internalName = namePrefix + name;
-
-    if (variableTable_.find(internalName) != variableTable_.end()) {
+bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, std::map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::map<std::string, std::pair<ArgumentType, long long>>>> argumentTable) {
+    if ((variableTable.find(name) != variableTable.end()) || (argumentTable && (argumentTable->get().find(name) != argumentTable->get().end()))) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
         return false;
     }
@@ -151,17 +148,15 @@ bool SymbolTable::declareArrayWithNamePrefix(const int lineNumber, const std::st
 
     const long long arraySize = upperBound - lowerBound + 1;
 
-    variableTable_.insert({internalName, {currentAddress_, std::make_pair(lowerBound, upperBound)}});
+    variableTable.insert({name, {currentAddress_, std::make_pair(lowerBound, upperBound)}});
     currentAddress_ += arraySize;
 
     return true;
 }
 
-bool SymbolTable::checkIfVariableExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
-    const std::string internalName = namePrefix + name;
-
-    const auto it = variableTable_.find(internalName);
-    if (it == variableTable_.end()) {
+bool SymbolTable::checkIfNumberVariableExists(const int lineNumber, const std::string& name, const std::map<std::string, VariableInfo>& variableTable) {
+    const auto it = variableTable.find(name);
+    if (it == variableTable.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
@@ -175,11 +170,9 @@ bool SymbolTable::checkIfVariableExistsWithNamePrefix(const int lineNumber, cons
     return true;
 }
 
-bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix, const std::optional<long long> arrayIndex) {
-    const std::string internalName = namePrefix + name;
-
-    const auto it = variableTable_.find(internalName);
-    if (it == variableTable_.end()) {
+bool SymbolTable::checkIfArrayVariableExists(const int lineNumber, const std::string& name, const std::optional<long long> arrayIndex, const std::map<std::string, VariableInfo>& variableTable) {
+    const auto it = variableTable.find(name);
+    if (it == variableTable.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
@@ -204,16 +197,61 @@ bool SymbolTable::checkIfArrayExistsWithNamePrefix(const int lineNumber, const s
     return true;
 }
 
-bool SymbolTable::checkIfVariableOrArrayExistsWithNamePrefix(const int lineNumber, const std::string& name, const std::string& namePrefix) {
-    const std::string internalName = namePrefix + name;
+bool SymbolTable::checkIfNumberVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::map<std::string, std::pair<ArgumentType, long long>>& argumentTable) {
 
-    const auto it = variableTable_.find(internalName);
-    if (it == variableTable_.end()) {
+    const auto it = argumentTable.find(name);
+    if (it == argumentTable.end()) {
         compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
         return false;
     }
 
+    const auto& [argumentType, _] = it->second;
+    if (argumentType == ArgumentType::ARRAY) {
+        compilationError_ = {"variable `" + name + "` is an array. [] need to be used in assignment.", lineNumber};
+        return false;
+    }
+
     return true;
+}
+
+bool SymbolTable::checkIfArrayVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::map<std::string, std::pair<ArgumentType, long long>>& argumentTable) {
+    const auto it = argumentTable.find(name);
+    if (it == argumentTable.end()) {
+        compilationError_ = {"variable `" + name + "` was not declared.", lineNumber};
+        return false;
+    }
+
+    const auto& [argumentType, _] = it->second;
+    if (argumentType != ArgumentType::ARRAY) {
+        compilationError_ = {"variable `" + name + "` is not an array. [] cannot be used in assignment.", lineNumber};
+        return false;
+    }
+
+    return true;
+}
+
+std::optional<ArgumentType> SymbolTable::checkIfVariableExistsAndGetItsType(const std::string& name, const std::optional<std::string> scopeProcedureName) {
+    if (!scopeProcedureName) {
+        const auto it = mainVariableTable_.find(name);
+        if (it == mainVariableTable_.end()) {
+            return std::nullopt;
+        }
+        return (it->second.arrayRange) ? ArgumentType::ARRAY : ArgumentType::NUMBER;
+    }
+
+    const auto& scopeProcedureVariableTable = procedureTable_.at(*scopeProcedureName).variableTable;
+    const auto& scopeProcedureArgumentTable = procedureTable_.at(*scopeProcedureName).argumentTable;
+
+    const auto it = scopeProcedureVariableTable.find(name);
+    if (it != scopeProcedureVariableTable.end()) {
+        return (it->second.arrayRange) ? ArgumentType::ARRAY : ArgumentType::NUMBER;    
+    }
+
+    const auto it2 = scopeProcedureArgumentTable.find(name);
+    if (it2 == scopeProcedureArgumentTable.end()) {
+        return std::nullopt;
+    }
+    return it2->second.first;
 }
 
 CompilationError SymbolTable::getCompilationError() const {

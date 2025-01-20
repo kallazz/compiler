@@ -3,6 +3,7 @@
 
 #include "SymbolTable.hpp"
 #include <optional>
+#include <string>
 
 class ConditionNode;
 class ExpressionNode;
@@ -53,7 +54,7 @@ private:
     bool isProcedureBeingProcessed();
 
     SymbolTable& symbolTable_;
-    std::optional<int> currentProcedureIndex_;
+    std::optional<std::string> currentProcedureName_;
 };
 
 #endif // SEMANTIC_ANALYSIS_VISITOR_HPP

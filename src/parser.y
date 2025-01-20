@@ -121,7 +121,7 @@ procedures:
         $$ = $1;
         $$->addProcedure($3, $6);
     }
-    | /* epsilon */ {
+    | %empty {
         $$ = new ProceduresNode(@$.first_line);
     }
 ;

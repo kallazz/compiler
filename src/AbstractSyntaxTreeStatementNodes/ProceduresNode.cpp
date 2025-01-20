@@ -4,11 +4,11 @@
 ProceduresNode::ProceduresNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
 void ProceduresNode::addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode) {
-    procedures_.emplace_back(std::make_unique<Procedure>(procedureHeadNode, declarationsNode, commandsNode, procedures_.size()));
+    procedures_.emplace_back(std::make_unique<Procedure>(procedureHeadNode, declarationsNode, commandsNode));
 }
 
 void ProceduresNode::addProcedure(ProcedureHeadNode* procedureHeadNode, CommandsNode* commandsNode) {
-    procedures_.emplace_back(std::make_unique<Procedure>(procedureHeadNode, nullptr, commandsNode, procedures_.size()));
+    procedures_.emplace_back(std::make_unique<Procedure>(procedureHeadNode, nullptr, commandsNode));
 }
 
 bool ProceduresNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
