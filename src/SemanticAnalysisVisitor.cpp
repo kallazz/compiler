@@ -86,6 +86,7 @@ bool SemanticAnalysisVisitor::visitArgumentsNode(const ArgumentsNode&) {
 bool SemanticAnalysisVisitor::visitAssignmentNode(const AssignmentNode& assignmentNode) {
     willNumberVariableBeModified_ = true;
 
+    // This if is for handling x := x case
     if (assignmentNode.getIdentifierNode() && assignmentNode.getExpressionNode() && !assignmentNode.getExpressionNode()->getValueNode2()
         && assignmentNode.getExpressionNode()->getValueNode1() && assignmentNode.getExpressionNode()->getValueNode1()->getIdentifierNode()
         && assignmentNode.getExpressionNode()->getValueNode1()->getIdentifierNode()->getName() == assignmentNode.getIdentifierNode()->getName()) {
