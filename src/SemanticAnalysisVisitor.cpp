@@ -146,11 +146,11 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
     const std::string& iteratorName = forLoopNode.getIteratorName();
 
     if (isProcedureBeingProcessed()) {
-        if (!symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorName, *currentProcedureName_, true)) {
+        if (!symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorName, *currentProcedureName_, true, true)) {
             return false;
         }
     } else {
-        if (!symbolTable_.declareNumberVariableInMain(forLoopNode.getLineNumber(), iteratorName, true)) {
+        if (!symbolTable_.declareNumberVariableInMain(forLoopNode.getLineNumber(), iteratorName, true, true)) {
             return false;
         }
     }
