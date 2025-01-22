@@ -66,6 +66,8 @@
 %token EOL ADD SUB MUL DIV MOD NEQ EQ GEQ GT LEQ LT ASSIGN COLON COMMA SEMICOLON LPAREN RPAREN LBRACK RBRACK PROCEDURE
     PROGRAM IS BEGINN END IF THEN ELSE ENDIF WHILE DO ENDWHILE REPEAT UNTIL FOR FROM TO DOWNTO ENDFOR READ WRITE INVALID T
 
+%type <number> signed_num
+
 %type <conditionNode> condition
 %type <expressionNode> expression
 %type <identifierNode> identifier
@@ -169,7 +171,7 @@ declarations:
         $$ = $1;
         free($3);
     }
-    | declarations COMMA NAME LBRACK NUM COLON NUM RBRACK {
+    | declarations COMMA NAME LBRACK signed_num COLON signed_num RBRACK {
         $1->addDeclaration(@3.first_line, $3, $5, $7);
         $$ = $1;
         free($3);
@@ -179,7 +181,7 @@ declarations:
         $$->addDeclaration(@1.first_line, $1);
         free($1);
     }
-    | NAME LBRACK NUM COLON NUM RBRACK {
+    | NAME LBRACK signed_num COLON signed_num RBRACK {
         $$ = new DeclarationsNode(@1.first_line);
         $$->addDeclaration(@1.first_line, $1, $3, $5);
         free($1);
@@ -241,14 +243,18 @@ condition:
 ;
 
 value:
-    NUM { $$ = new ValueNode(@1.first_line, $1); }
+    signed_num { $$ = new ValueNode(@1.first_line, $1); }
     | identifier { $$ = new ValueNode(@1.first_line, $1); }
 ;
 
 identifier:
     NAME { $$ = new IdentifierNode(@1.first_line, $1); free($1); }
     | NAME LBRACK NAME RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); free($1); free($3); }
-    | NAME LBRACK NUM RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); free($1); }
+    | NAME LBRACK signed_num RBRACK { $$ = new IdentifierNode(@1.first_line, $1, $3); free($1); }
+
+signed_num:
+    SUB NUM { $$ = -$2; }
+    | NUM { $$ = $1; }
 
 %%
 
