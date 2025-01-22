@@ -5,7 +5,7 @@ import pytest
 
 from .config import INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME
 
-_CORRECT_PROGRAMS_DIR = "correct-programs"
+_CORRECT_PROGRAMS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "correct-programs"))
 
 
 def _run_symbol_table_error_test(input_code: str, expected_error_message: str) -> None:
@@ -87,14 +87,14 @@ def test_variable_not_declared_in_brackets_in_procedure():
 
 def test_brackets_used_on_non_array():
     input_code = "PROGRAM IS x, y, n BEGIN READ n[2]; END"
-    expected_error_message = "Error at line 1: variable `n` is not an array. [] cannot be used in assignment."
+    expected_error_message = "Error at line 1: variable `n` is not an array. [] cannot be used when accessing it."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
 
 
 def test_no_brackets_used_on_array():
     input_code = "PROGRAM IS x, y, tab[1:10] BEGIN READ tab; END"
-    expected_error_message = "Error at line 1: variable `tab` is an array. [] need to be used in assignment."
+    expected_error_message = "Error at line 1: variable `tab` is an array. [] need to be used when accessing it."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
 
@@ -157,6 +157,13 @@ def test_procedure_variable_declared_with_same_name_as_argument(declaration, red
 
 def test_procedure_not_declared():
     input_code = f"PROGRAM IS x, y BEGIN proc(x, y); END"
+    expected_error_message = "Error at line 1: procedure `proc` was not declared."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_procedure_not_declared_when_recursive_call():
+    input_code = f"PROCEDURE proc (a, T t) IS BEGIN proc(a, t); END PROGRAM IS a BEGIN READ a; END"
     expected_error_message = "Error at line 1: procedure `proc` was not declared."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
@@ -267,7 +274,7 @@ def test_for_loop_iterator_named_like_symbol_in_procedure(arguments, variable_de
 
 
 def test_iterator_passed_to_procedure():
-    input_code = f"PROCEDURE proc (a, b, T t) IS BEGIN READ a; END PROGRAM IS n, x, y[-2:-1] BEGIN FOR i FROM 1 TO n DO proc(x, i, y); ENDFOR END"
+    input_code = f"PROCEDURE proc (a, b, T t) IS BEGIN READ a; END PROGRAM IS n, x, y[-2:-1] BEGIN n := 10; FOR i FROM 1 TO n DO proc(x, i, y); ENDFOR END"
     expected_error_message = "Error at line 1: iterator variable `i` cannot be passed to procedure."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
@@ -275,10 +282,69 @@ def test_iterator_passed_to_procedure():
 
 @pytest.mark.parametrize("command", ["READ i;", "i := 10;"])
 def test_iterator_modified(command):
-    input_code = f"PROGRAM IS n BEGIN FOR i FROM 1 TO n DO {command} ENDFOR END"
+    input_code = f"PROGRAM IS n BEGIN n := 10; FOR i FROM 1 TO n DO {command} ENDFOR END"
     expected_error_message = "Error at line 1: modification of iterator variable `i` is not allowed."
 
     _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("wrong_usage", ["t[x] := x;", "y := x;", "WRITE x;"])
+def test_variable_not_initialized(wrong_usage):
+    input_code = f"PROGRAM IS t[-10:10], x, y BEGIN {wrong_usage} END"
+    expected_error_message = "Error at line 1: variable `x` was not initialized."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("initialization_command", ["READ x;", "x := 10;", "x := t[0];"])
+def test_variable_initialized_correctly(initialization_command):
+    input_code = f"PROGRAM IS t[-10:10], x, y BEGIN {initialization_command} t[0] := x; y := x; END"
+
+    _run_symbol_table_working_test(input_code)
+
+
+@pytest.mark.parametrize("wrong_usage", ["t[x] := x;", "y := x;", "WRITE x;"])
+def test_variable_not_initialized_in_procedure(wrong_usage):
+    input_code = f"PROCEDURE proc(p) IS t[-10:10], x, y BEGIN {wrong_usage} END PROGRAM IS n BEGIN READ n; END"
+    expected_error_message = "Error at line 1: variable `x` was not initialized."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("initialization_command", ["READ x;", "x := 10;", "x := t[0];"])
+def test_variable_initialized_correctly_in_procedure(initialization_command):
+    input_code = f"PROCEDURE proc(p) IS t[-10:10], x, y BEGIN {initialization_command} t[0] := x; y := x; END PROGRAM IS n BEGIN READ n; END"
+
+    _run_symbol_table_working_test(input_code)
+
+
+@pytest.mark.parametrize("wrong_usage, variable", [("x := y;", "y"), ("y := x;", "x")])
+def test_assigning_uninitialized_variables_to_each_other(wrong_usage, variable):
+    input_code = f"PROGRAM IS t[-10:10], x, y BEGIN {wrong_usage} END"
+    expected_error_message = f"Error at line 1: variable `{variable}` was not initialized."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+@pytest.mark.parametrize("wrong_usage, variable", [("x := y;", "y"), ("y := x;", "x")])
+def test_assigning_uninitialized_variables_to_each_other_in_procedure(wrong_usage, variable):
+    input_code = f"PROCEDURE proc(p) IS t[-10:10], x, y BEGIN {wrong_usage} END PROGRAM IS n BEGIN READ n; END"
+    expected_error_message = f"Error at line 1: variable `{variable}` was not initialized."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_assigning_uninitialized_variable_to_itself():
+    input_code = f"PROGRAM IS x, y BEGIN x := x; y := x; END"
+    expected_error_message = f"Error at line 1: variable `x` was not initialized."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
+def test_variable_initialized_afer_procedure_call():
+    input_code = "PROCEDURE proc (a) IS n BEGIN READ n; END PROGRAM IS x, y BEGIN proc(x); y := x; END"
+
+    _run_symbol_table_working_test(input_code)
 
 
 @pytest.mark.parametrize("correct_program_file_name", os.listdir(_CORRECT_PROGRAMS_DIR))

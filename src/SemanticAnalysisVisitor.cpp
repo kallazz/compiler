@@ -19,7 +19,7 @@
 #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
 
-SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), willVariableBeModified_(false) {}
+SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), willNumberVariableBeModified_(false) {}
 
 bool SemanticAnalysisVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     if (conditionNode.getValueNode1() && !conditionNode.getValueNode1()->accept(*this)) {
@@ -48,9 +48,9 @@ bool SemanticAnalysisVisitor::visitExpressionNode(const ExpressionNode& expressi
 bool SemanticAnalysisVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
         if (isProcedureBeingProcessed()) {
-            return symbolTable_.checkIfNumberVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), willVariableBeModified_, *currentProcedureName_);
+            return symbolTable_.checkIfNumberVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_, *currentProcedureName_);
         }
-        return symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), willVariableBeModified_);
+        return symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_);
     }
 
     if (!identifierNode.getIndexName()) {
@@ -84,14 +84,20 @@ bool SemanticAnalysisVisitor::visitArgumentsNode(const ArgumentsNode&) {
 }
 
 bool SemanticAnalysisVisitor::visitAssignmentNode(const AssignmentNode& assignmentNode) {
-    willVariableBeModified_ = true;
+    willNumberVariableBeModified_ = true;
+
+    if (assignmentNode.getIdentifierNode() && assignmentNode.getExpressionNode() && !assignmentNode.getExpressionNode()->getValueNode2()
+        && assignmentNode.getExpressionNode()->getValueNode1() && assignmentNode.getExpressionNode()->getValueNode1()->getIdentifierNode()
+        && assignmentNode.getExpressionNode()->getValueNode1()->getIdentifierNode()->getName() == assignmentNode.getIdentifierNode()->getName()) {
+        willNumberVariableBeModified_ = false;
+    }
 
     if (assignmentNode.getIdentifierNode() && !assignmentNode.getIdentifierNode()->accept(*this)) {
-        willVariableBeModified_ = false;
+        willNumberVariableBeModified_ = false;
         return false;
     }
 
-    willVariableBeModified_ = false;
+    willNumberVariableBeModified_ = false;
 
     if (assignmentNode.getExpressionNode() && !assignmentNode.getExpressionNode()->accept(*this)) {
         return false;
@@ -230,14 +236,14 @@ bool SemanticAnalysisVisitor::visitProceduresNode(const ProceduresNode& procedur
 }
 
 bool SemanticAnalysisVisitor::visitReadNode(const ReadNode& readNode) {
-    willVariableBeModified_ = true;
+    willNumberVariableBeModified_ = true;
 
     if (readNode.getIdentifierNode() && !readNode.getIdentifierNode()->accept(*this)) {
-        willVariableBeModified_ = false;
+        willNumberVariableBeModified_ = false;
         return false;
     }
 
-    willVariableBeModified_ = false;
+    willNumberVariableBeModified_ = false;
     return true;
 }
 
