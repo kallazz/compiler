@@ -1,0 +1,20 @@
+PROGRAM IS
+	n, j, ta[0:24], tb[0:24], tc[0:24]
+BEGIN
+	n:=24;
+	tc[0]:=n;
+	tc[n]:=n-tc[0];
+        j:=tc[0]+1;
+        FOR i FROM tc[0] DOWNTO tc[n] DO
+		ta[i]:=i;
+		tb[i]:=n-i;
+	ENDFOR
+        j:=tc[n];
+        WHILE j<=tc[0] DO
+		tc[j]:=ta[j]*tb[j];
+                j:=j+1;
+	ENDWHILE
+        FOR i FROM 0 TO n DO
+		WRITE tc[i];
+	ENDFOR
+END

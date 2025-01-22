@@ -1,0 +1,38 @@
+# Kombinacje
+# ? 20
+# ? 9
+# > 167960
+
+PROCEDURE s(n,m) IS
+    o
+BEGIN
+    m:=1;
+    FOR i FROM n DOWNTO 2 DO
+        o:=i%2;
+        IF o=1 THEN
+            m:=m*i;
+        ELSE
+            m:=i*m;
+        ENDIF
+    ENDFOR
+END
+
+PROCEDURE bc(n,k,m) IS
+   p,a,b,c
+BEGIN
+   s(n,a);
+   p:=n-k;
+   s(p,b);
+   s(k,c);
+   m:=a/b;
+   m:=m/c;
+END
+
+PROGRAM IS
+    n,k,w
+BEGIN
+    READ n;
+    READ k;
+    bc(n,k,w);
+    WRITE w;
+END

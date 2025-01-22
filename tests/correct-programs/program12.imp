@@ -1,0 +1,52 @@
+# sortowanie
+
+PROCEDURE shuffle(T t, n) IS
+  q, w
+BEGIN
+  q:=5;
+  w:=1;
+  FOR i FROM 1 TO n DO
+    w:=w*q;
+    w:=w%n;
+    t[i]:=w;
+  ENDFOR
+  t[n]:=0;
+END
+
+PROCEDURE sort(T t, n) IS
+  x, j, k
+BEGIN
+  FOR i FROM 2 TO n DO
+    x:=t[i];
+    j:=i;
+    WHILE j>1 DO
+      k:=j-1;
+      IF t[k]>x THEN
+        t[j]:=t[k];
+        j:=j-1;
+      ELSE
+        k:=j;
+        j:=1;
+      ENDIF
+    ENDWHILE
+    t[k]:=x;
+  ENDFOR
+END
+
+PROCEDURE write(T t, n) IS
+BEGIN
+  FOR i FROM 1 TO n DO
+    WRITE t[i];
+  ENDFOR
+END
+
+PROGRAM IS
+  t[1:23], n
+BEGIN
+  n:=23;
+  shuffle(t,n);
+  write(t,n);
+  WRITE 1234567890;
+  sort(t,n);
+  write(t,n);
+END

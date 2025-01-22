@@ -1,0 +1,29 @@
+PROCEDURE gcd (a,b,c) IS
+x,y
+BEGIN
+x:=a;
+y:=b;
+WHILE y>0 DO
+IF x>=y THEN
+x:=x-y;
+ELSE
+x:=x+y;
+y:=x-y;
+x:=x-y;
+ENDIF
+ENDWHILE
+c:=x;
+END
+
+PROGRAM IS
+a,b,c,d,x,y,z
+BEGIN
+READ a;
+READ b;
+READ c;
+READ d;
+gcd (a,b,x);
+gcd (c,d,y);
+gcd (x,y,z);
+WRITE z;
+END

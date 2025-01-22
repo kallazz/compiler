@@ -1,0 +1,31 @@
+PROCEDURE licz (T s, n) IS
+j
+BEGIN
+FOR i FROM 2 TO n DO
+s[i]:=1;
+ENDFOR
+FOR i FROM 2 TO n DO
+IF s[i]>0 THEN
+j:=i+i;
+WHILE j<=n DO
+s[j]:=0;
+j:=j+i;
+ENDWHILE
+ENDIF
+ENDFOR
+END
+PROCEDURE wypisz (T s, n) IS
+BEGIN
+FOR i FROM n DOWNTO 2 DO
+IF s[i]>0 THEN
+WRITE i;
+ENDIF
+ENDFOR
+END
+PROGRAM IS
+n, sito [2: 100 ]
+BEGIN
+n:= 100 ;
+licz ( sito ,n);
+wypisz ( sito ,n);
+END
