@@ -1,10 +1,10 @@
 #ifndef SYMBOL_TABLE_HPP
 #define SYMBOL_TABLE_HPP
 
-#include "CompilationError.hpp"
 #include "enums/ArgumentType.hpp"
 #include "structs/Argument.hpp"
 #include "structs/ArgumentDeclaration.hpp"
+#include "structs/CompilationError.hpp"
 #include <unordered_map>
 #include <optional>
 #include <string>
