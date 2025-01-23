@@ -10,6 +10,7 @@ class RepeatLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
     RepeatLoopNode(const int lineNumber, CommandsNode* commandsNode, ConditionNode* conditionNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

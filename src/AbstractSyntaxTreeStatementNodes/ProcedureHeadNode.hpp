@@ -10,6 +10,7 @@ class ProcedureHeadNode : public AbstractSyntaxTreeStatementNode {
 public:
     ProcedureHeadNode(const int lineNumber, const std::string name, ArgumentsDeclarationNode* argumentsDeclarationNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

@@ -41,5 +41,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    std::ofstream outputFile(argv[2]);
+    if (!outputFile) {
+        std::cerr << "Error: could not open file " << argv[2] << '\n';
+        return 1;
+    }
+
+    tree.generateAssemblerToFile(outputFile);
+
+    outputFile.close();
+
     return 0;
 }

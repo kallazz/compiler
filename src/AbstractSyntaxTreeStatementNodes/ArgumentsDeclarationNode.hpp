@@ -15,6 +15,7 @@ public:
 
     void addArgumentDeclaration(const int lineNumber, const std::string name, const bool isArray);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

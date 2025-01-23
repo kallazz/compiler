@@ -11,6 +11,7 @@ class ForLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
     ForLoopNode(const int lineNumber, const std::string iteratorName, ValueNode* startValueNode, ValueNode* endValueNode, CommandsNode* commandsNode, bool isIteratorIncremented);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

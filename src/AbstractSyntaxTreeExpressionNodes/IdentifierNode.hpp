@@ -11,6 +11,7 @@ public:
     IdentifierNode(const int lineNumber, const std::string name, const std::string indexName);
     IdentifierNode(const int lineNumber, const std::string name, const long long indexValue);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

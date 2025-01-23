@@ -9,6 +9,7 @@ class AssignmentNode : public AbstractSyntaxTreeStatementNode {
 public:
     AssignmentNode(const int lineNumber, IdentifierNode* identifierNode, ExpressionNode* expressionNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

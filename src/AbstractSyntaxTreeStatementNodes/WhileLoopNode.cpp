@@ -1,8 +1,14 @@
 #include "WhileLoopNode.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 WhileLoopNode::WhileLoopNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* commandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), conditionNode_(conditionNode), commandsNode_(commandsNode) {}
+
+void WhileLoopNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    return assemblerGeneratorVisitor.visitWhileLoopNode(*this);
+}
 
 bool WhileLoopNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitWhileLoopNode(*this);

@@ -1,8 +1,14 @@
 #include "IfNode.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 IfNode::IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), conditionNode_(conditionNode), thenCommandsNode_(thenCommandsNode), elseCommandsNode_(elseCommandsNode) {}
+
+void IfNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    return assemblerGeneratorVisitor.visitIfNode(*this);
+}
 
 bool IfNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitIfNode(*this);

@@ -11,6 +11,7 @@ public:
     MainNode(const int lineNumber, DeclarationsNode* declarationsNode, CommandsNode* commandsNode);
     MainNode(const int lineNumber, CommandsNode* commandsNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

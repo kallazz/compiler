@@ -1,10 +1,15 @@
 #include "ValueNode.hpp"
-#include "SymbolTable.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 ValueNode::ValueNode(const int lineNumber, const long long number) : AbstractSyntaxTreeExpressionNode(lineNumber), number_(number), identifierNode_(nullptr) {}
 
 ValueNode::ValueNode(const int lineNumber, IdentifierNode* identifierNode) : AbstractSyntaxTreeExpressionNode(lineNumber), number_(std::nullopt), identifierNode_(identifierNode) {}
+
+void ValueNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    assemblerGeneratorVisitor.visitValueNode(*this);
+}
 
 bool ValueNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitValueNode(*this);

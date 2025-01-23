@@ -13,6 +13,7 @@ public:
 
     void addCommand(AbstractSyntaxTreeStatementNode* commandNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

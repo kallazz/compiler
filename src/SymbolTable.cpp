@@ -1,6 +1,6 @@
 #include "SymbolTable.hpp"
 
-constexpr long long FIRST_AVAILABLE_ADDRESS = 1;
+constexpr long long FIRST_AVAILABLE_ADDRESS = 2;
 
 SymbolTable::SymbolTable() : currentAddress_(FIRST_AVAILABLE_ADDRESS), shouldReturnErrorInstantly_(false) {}
 

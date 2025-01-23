@@ -1,7 +1,8 @@
 #ifndef ABSTRACT_SYNTAX_TREE_EXPRESSION_NODE
 #define ABSTRACT_SYNTAX_TREE_EXPRESSION_NODE
 
-#include "SemanticAnalysisVisitor.hpp"
+class AssemblerGeneratorVisitor;
+class SemanticAnalysisVisitor;
 
 class AbstractSyntaxTreeExpressionNode {
 public:
@@ -10,6 +11,7 @@ public:
 
     int getLineNumber() const { return lineNumber_; }
 
+    virtual void accept(AssemblerGeneratorVisitor&) const = 0;
     virtual bool accept(SemanticAnalysisVisitor&) const = 0;
     virtual void print() const = 0;
 

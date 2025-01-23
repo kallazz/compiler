@@ -10,6 +10,7 @@ class WhileLoopNode : public AbstractSyntaxTreeStatementNode {
 public:
     WhileLoopNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* commandsNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

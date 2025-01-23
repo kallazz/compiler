@@ -11,6 +11,7 @@ public:
     ExpressionNode(const int lineNumber, ValueNode* valueNode);
     ExpressionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2_, const MathematicalOperator mathematicalOperator);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

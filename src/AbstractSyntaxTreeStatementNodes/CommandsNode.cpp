@@ -1,11 +1,16 @@
 #include "CommandsNode.hpp"
-#include "../SemanticAnalysisVisitor.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 CommandsNode::CommandsNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
 void CommandsNode::addCommand(AbstractSyntaxTreeStatementNode* commandNode) {
     commandNodes_.emplace_back(commandNode);
+}
+
+void CommandsNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    return assemblerGeneratorVisitor.visitCommandsNode(*this);
 }
 
 bool CommandsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {

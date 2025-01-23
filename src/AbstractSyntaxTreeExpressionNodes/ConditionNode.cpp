@@ -1,9 +1,14 @@
 #include "ConditionNode.hpp"
-#include "SymbolTable.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator)
     : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode1), valueNode2_(valueNode2), comparsionOperator_(comparsionOperator) {}
+
+void ConditionNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    assemblerGeneratorVisitor.visitConditionNode(*this);
+}
 
 bool ConditionNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitConditionNode(*this);

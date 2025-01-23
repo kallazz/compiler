@@ -9,6 +9,7 @@ class WriteNode : public AbstractSyntaxTreeStatementNode {
 public:
     WriteNode(const int lineNumber, ValueNode* valueNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

@@ -1,5 +1,6 @@
 #include "DeclarationsNode.hpp"
-#include "SymbolTable.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
+#include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
 DeclarationsNode::DeclarationsNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
@@ -10,6 +11,10 @@ void DeclarationsNode::addDeclaration(const int lineNumber, const std::string na
 
 void DeclarationsNode::addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound) {
     declarations_.push_back({lineNumber, name, arrayLowerBound, arrayUpperBound});
+}
+
+void DeclarationsNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
+    return assemblerGeneratorVisitor.visitDeclarationsNode(*this);
 }
 
 bool DeclarationsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {

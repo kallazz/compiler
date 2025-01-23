@@ -20,6 +20,7 @@ public:
     void addDeclaration(const int lineNumber, const std::string name);
     void addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

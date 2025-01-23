@@ -11,6 +11,7 @@ public:
     ValueNode(const int lineNumber, const long long number);
     ValueNode(const int lineNumber, IdentifierNode* identifierNode);
 
+    void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
     void print() const override;
 

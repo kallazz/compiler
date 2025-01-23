@@ -1,4 +1,5 @@
 #include "AbstractSyntaxTree.hpp"
+#include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
@@ -38,6 +39,13 @@ bool AbstractSyntaxTree::fillSymbolTable() {
     }
     
     return true;
+}
+
+void AbstractSyntaxTree::generateAssemblerToFile(std::ofstream& outputFile) {
+    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_, outputFile);
+
+    proceduresNode_->accept(assemblerGeneratorVisitor);
+    mainNode_->accept(assemblerGeneratorVisitor);
 }
 
 CompilationError AbstractSyntaxTree::getCompilationError() const {
