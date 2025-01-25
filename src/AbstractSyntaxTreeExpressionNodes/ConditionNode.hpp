@@ -16,7 +16,7 @@ public:
 
     const std::unique_ptr<ValueNode>& getValueNode1() const;
     const std::unique_ptr<ValueNode>& getValueNode2() const;
-    const std::optional<ComparsionOperator> getComparisonOperator() const;
+    ComparsionOperator getComparisonOperator() const;
 
 private:
     const std::unique_ptr<ValueNode> valueNode1_;

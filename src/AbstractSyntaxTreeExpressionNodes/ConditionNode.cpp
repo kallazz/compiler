@@ -28,6 +28,6 @@ const std::unique_ptr<ValueNode>& ConditionNode::getValueNode2() const {
     return valueNode2_;
 }
 
-const std::optional<ComparsionOperator> ConditionNode::getComparisonOperator() const {
+ComparsionOperator ConditionNode::getComparisonOperator() const {
     return comparsionOperator_;
 }

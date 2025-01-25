@@ -1,8 +1,8 @@
 #include "SymbolTable.hpp"
 
-constexpr long long FIRST_AVAILABLE_ADDRESS = 2;
+constexpr long long FIRST_AVAILABLE_ADDRESS = 4;
 
-SymbolTable::SymbolTable() : currentAddress_(FIRST_AVAILABLE_ADDRESS), shouldReturnErrorInstantly_(false) {}
+SymbolTable::SymbolTable() : currentAvailableAddress_(FIRST_AVAILABLE_ADDRESS), shouldReturnErrorInstantly_(false) {}
 
 bool SymbolTable::declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator, const bool isInitialized) {
     return declareNumberVariable(lineNumber, name, mainVariableTable_, std::nullopt, isIterator, isInitialized);
@@ -75,8 +75,8 @@ bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name
             return false;
         }
 
-        argumentInfos.emplace_back(ArgumentInfo{argumentDeclaration.name, argumentDeclaration.argumentType, currentAddress_});
-        currentAddress_++;
+        argumentInfos.emplace_back(ArgumentInfo{argumentDeclaration.name, argumentDeclaration.argumentType, currentAvailableAddress_});
+        currentAvailableAddress_++;
     }
 
     procedureTable_.insert({name, {argumentInfos, std::unordered_map<std::string, VariableInfo>()}});
@@ -151,8 +151,8 @@ bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string&
         return false;
     }
 
-    variableTable.insert({name, {currentAddress_, std::nullopt, isIterator, isInitialized}});
-    currentAddress_++;
+    variableTable.insert({name, {currentAvailableAddress_, std::nullopt, isIterator, isInitialized}});
+    currentAvailableAddress_++;
 
     return true;
 }
@@ -173,10 +173,12 @@ bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& 
         return false;
     }
 
-    const long long arraySize = upperBound - lowerBound + 1;
 
-    variableTable.insert({name, {currentAddress_, std::make_pair(lowerBound, upperBound)}});
-    currentAddress_ += arraySize;
+    const long long arraySize = upperBound - lowerBound + 1;
+    const long long zeroAddress = currentAvailableAddress_ - lowerBound;
+
+    variableTable.insert({name, {zeroAddress, std::make_pair(lowerBound, upperBound)}});
+    currentAvailableAddress_ += arraySize;
 
     return true;
 }
@@ -316,6 +318,15 @@ std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& arg
     }
 
     return std::nullopt;
+}
+
+long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
+    return mainVariableTable_.at(name).address;
+}
+
+long long SymbolTable::getVariableAddressInProcedure(const std::string& name) const {
+    // TODO: Implement logic
+    return 10;
 }
 
 CompilationError SymbolTable::getCompilationError() const {

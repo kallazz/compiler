@@ -14,7 +14,7 @@ public:
     void setMainNode(MainNode* mainNode);
     void printNodes() const;
     bool fillSymbolTable();
-    void generateAssemblerToFile(std::ofstream& outputFile);
+    std::string generateAssembler() const;
     CompilationError getCompilationError() const;
 
 private:

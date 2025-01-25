@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    tree.generateAssemblerToFile(outputFile);
+    const std::string assemblerCode = tree.generateAssembler();
+    outputFile << assemblerCode;
 
     outputFile.close();
 

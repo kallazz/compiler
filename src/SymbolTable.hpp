@@ -48,6 +48,9 @@ public:
     void removeVariableFromMain(const std::string& name);
     void removeVariableFromProcedure(const std::string& name, const std::string& procedureName);
 
+    long long getVariableAddressInMain(const std::string& name) const;
+    long long getVariableAddressInProcedure(const std::string& name) const;
+
     CompilationError getCompilationError() const;
 
 private:
@@ -62,7 +65,7 @@ private:
 
     std::unordered_map<std::string, VariableInfo> mainVariableTable_;
     std::unordered_map<std::string, ProcedureInfo> procedureTable_;
-    long long currentAddress_;
+    long long currentAvailableAddress_;
     CompilationError compilationError_;
     bool shouldReturnErrorInstantly_;
 };

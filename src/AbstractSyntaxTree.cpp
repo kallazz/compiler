@@ -41,11 +41,13 @@ bool AbstractSyntaxTree::fillSymbolTable() {
     return true;
 }
 
-void AbstractSyntaxTree::generateAssemblerToFile(std::ofstream& outputFile) {
-    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_, outputFile);
+std::string AbstractSyntaxTree::generateAssembler() const {
+    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_);
 
     proceduresNode_->accept(assemblerGeneratorVisitor);
     mainNode_->accept(assemblerGeneratorVisitor);
+
+    return assemblerGeneratorVisitor.getGeneratedAssemblerCode();
 }
 
 CompilationError AbstractSyntaxTree::getCompilationError() const {
