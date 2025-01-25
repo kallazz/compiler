@@ -22,11 +22,11 @@
 SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), willNumberVariableBeModified_(false) {}
 
 bool SemanticAnalysisVisitor::visitConditionNode(const ConditionNode& conditionNode) {
-    if (conditionNode.getValueNode1() && !conditionNode.getValueNode1()->accept(*this)) {
+    if (!conditionNode.getValueNode1()->accept(*this)) {
         return false;
     }
 
-    if (conditionNode.getValueNode2() && !conditionNode.getValueNode2()->accept(*this)) {
+    if (!conditionNode.getValueNode2()->accept(*this)) {
         return false;
     }
 
@@ -34,7 +34,7 @@ bool SemanticAnalysisVisitor::visitConditionNode(const ConditionNode& conditionN
 }
 
 bool SemanticAnalysisVisitor::visitExpressionNode(const ExpressionNode& expressionNode) {
-    if (expressionNode.getValueNode1() && !expressionNode.getValueNode1()->accept(*this)) {
+    if (!expressionNode.getValueNode1()->accept(*this)) {
         return false;
     }
 
@@ -53,7 +53,7 @@ bool SemanticAnalysisVisitor::visitIdentifierNode(const IdentifierNode& identifi
         return symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_);
     }
 
-    if (!identifierNode.getIndexName()) {
+    if (identifierNode.getIndexValue()) {
         if (isProcedureBeingProcessed()) {
             return symbolTable_.checkIfArrayVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), identifierNode.getIndexValue(), *currentProcedureName_);
         }
@@ -84,12 +84,12 @@ bool SemanticAnalysisVisitor::visitArgumentsNode(const ArgumentsNode&) {
 }
 
 bool SemanticAnalysisVisitor::visitAssignmentNode(const AssignmentNode& assignmentNode) {
-    if (assignmentNode.getExpressionNode() && !assignmentNode.getExpressionNode()->accept(*this)) {
+    if (!assignmentNode.getExpressionNode()->accept(*this)) {
         return false;
     }
 
     willNumberVariableBeModified_ = true;
-    if (assignmentNode.getIdentifierNode() && !assignmentNode.getIdentifierNode()->accept(*this)) {
+    if (!assignmentNode.getIdentifierNode()->accept(*this)) {
         willNumberVariableBeModified_ = false;
         return false;
     }
@@ -148,15 +148,15 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
         }
     }
 
-    if (forLoopNode.getStartValueNode() && !forLoopNode.getStartValueNode()->accept(*this)) {
+    if (!forLoopNode.getStartValueNode()->accept(*this)) {
         return false;
     }
 
-    if (forLoopNode.getEndValueNode() && !forLoopNode.getEndValueNode()->accept(*this)) {
+    if (!forLoopNode.getEndValueNode()->accept(*this)) {
         return false;
     }
 
-    if (forLoopNode.getCommandsNode() && !forLoopNode.getCommandsNode()->accept(*this)) {
+    if (!forLoopNode.getCommandsNode()->accept(*this)) {
         return false;
     }
 
@@ -170,11 +170,11 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
 }
 
 bool SemanticAnalysisVisitor::visitIfNode(const IfNode& ifNode) {
-    if (ifNode.getConditionNode() && !ifNode.getConditionNode()->accept(*this)) {
+    if (!ifNode.getConditionNode()->accept(*this)) {
         return false;
     }
 
-    if (ifNode.getThenCommandsNode() && !ifNode.getThenCommandsNode()->accept(*this)) {
+    if (!ifNode.getThenCommandsNode()->accept(*this)) {
         return false;
     }
 
@@ -190,7 +190,7 @@ bool SemanticAnalysisVisitor::visitMainNode(const MainNode& mainNode) {
         return false;
     }
 
-    if (mainNode.getCommandsNode() && !mainNode.getCommandsNode()->accept(*this)) {
+    if (!mainNode.getCommandsNode()->accept(*this)) {
         return false;
     }
 
@@ -211,7 +211,7 @@ bool SemanticAnalysisVisitor::visitProceduresNode(const ProceduresNode& procedur
     for (const auto& procedure : proceduresNode.getProcedures()) {
         currentProcedureName_ = procedure->procedureHeadNode->getName();
 
-        if (procedure->procedureHeadNode && !procedure->procedureHeadNode->accept(*this)) {
+        if (!procedure->procedureHeadNode->accept(*this)) {
             return false;
         }
 
@@ -219,7 +219,7 @@ bool SemanticAnalysisVisitor::visitProceduresNode(const ProceduresNode& procedur
             return false;
         }
 
-        if (procedure->commandsNode && !procedure->commandsNode->accept(*this)) {
+        if (!procedure->commandsNode->accept(*this)) {
             return false;
         }
     }
@@ -231,7 +231,7 @@ bool SemanticAnalysisVisitor::visitProceduresNode(const ProceduresNode& procedur
 bool SemanticAnalysisVisitor::visitReadNode(const ReadNode& readNode) {
     willNumberVariableBeModified_ = true;
 
-    if (readNode.getIdentifierNode() && !readNode.getIdentifierNode()->accept(*this)) {
+    if (!readNode.getIdentifierNode()->accept(*this)) {
         willNumberVariableBeModified_ = false;
         return false;
     }
@@ -241,11 +241,11 @@ bool SemanticAnalysisVisitor::visitReadNode(const ReadNode& readNode) {
 }
 
 bool SemanticAnalysisVisitor::visitRepeatLoopNode(const RepeatLoopNode& repeatLoopNode) {
-    if (repeatLoopNode.getCommandsNode() && !repeatLoopNode.getCommandsNode()->accept(*this)) {
+    if (!repeatLoopNode.getCommandsNode()->accept(*this)) {
         return false;
     }
 
-    if (repeatLoopNode.getConditionNode() && !repeatLoopNode.getConditionNode()->accept(*this)) {
+    if (!repeatLoopNode.getConditionNode()->accept(*this)) {
         return false;
     }
 
@@ -253,11 +253,11 @@ bool SemanticAnalysisVisitor::visitRepeatLoopNode(const RepeatLoopNode& repeatLo
 }
 
 bool SemanticAnalysisVisitor::visitWhileLoopNode(const WhileLoopNode& whileLoopNode) {
-    if (whileLoopNode.getConditionNode() && !whileLoopNode.getConditionNode()->accept(*this)) {
+    if (!whileLoopNode.getConditionNode()->accept(*this)) {
         return false;
     }
 
-    if (whileLoopNode.getCommandsNode() && !whileLoopNode.getCommandsNode()->accept(*this)) {
+    if (!whileLoopNode.getCommandsNode()->accept(*this)) {
         return false;
     }
 
@@ -265,7 +265,7 @@ bool SemanticAnalysisVisitor::visitWhileLoopNode(const WhileLoopNode& whileLoopN
 }
 
 bool SemanticAnalysisVisitor::visitWriteNode(const WriteNode& writeNode) {
-    if (writeNode.getValueNode() && !writeNode.getValueNode()->accept(*this)) {
+    if (!writeNode.getValueNode()->accept(*this)) {
         return false;
     }
 
