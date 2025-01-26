@@ -32,29 +32,34 @@ Registers' purpose:
 */
 
 AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable)
-    : symbolTable_(symbolTable), outputAssemblerCode_(""), currentIdentifierAddress_(-1), isIdentifierAddressPointer_(false), currentValue_(std::nullopt), currentConditionJumpType_(""), unresolvedJumpsCounter_(0) {}
+    : symbolTable_(symbolTable), outputAssemblerCode_(""), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
-    // TODO: Repair
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
     switch (conditionNode.getComparisonOperator()) {
         case ComparsionOperator::EQUAL:
-            currentConditionJumpType_= "JZERO";
+            currentJumpType_= "JZERO";
+            isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparsionOperator::NOT_EQUAL:
-            currentConditionJumpType_= "JZERO";
+            currentJumpType_= "JZERO";
+            isCurrentJumpForTrueCondition_ = false;
             break;
         case ComparsionOperator::GREATER_THAN:
-            currentConditionJumpType_= "JPOS";
+            currentJumpType_= "JPOS";
+            isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparsionOperator::LESS_THAN:
-            currentConditionJumpType_= "JNEG";
+            currentJumpType_= "JNEG";
+            isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparsionOperator::GREATER_THAN_OR_EQUAL:
-            currentConditionJumpType_= "JNEG";
+            currentJumpType_= "JNEG";
+            isCurrentJumpForTrueCondition_ = false;
             break;
         case ComparsionOperator::LESS_THAN_OR_EQUAL:
-            currentConditionJumpType_= "JPOS";
+            currentJumpType_= "JPOS";
+            isCurrentJumpForTrueCondition_ = false;
             break;
     }
 }
@@ -84,17 +89,17 @@ void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identi
     // TODO: Add procedure logic
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
         currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(identifierNode.getName());
-        isIdentifierAddressPointer_ = false;
+        isCurrentIdentifierAddressPointer_ = false;
     } else if (identifierNode.getIndexValue()) {
         currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(identifierNode.getName()) + *identifierNode.getIndexValue();
-        isIdentifierAddressPointer_ = false;
+        isCurrentIdentifierAddressPointer_ = false;
     } else if (identifierNode.getIndexName()) {
         const long long arrayAddress = symbolTable_.getVariableAddressInMain(identifierNode.getName());
         const long long arrayIndexNameAddress = symbolTable_.getVariableAddressInMain(*identifierNode.getIndexName());
         writeLineToOutputFile("SET " + std::to_string(arrayAddress));
         writeLineToOutputFile("ADD " + std::to_string(arrayIndexNameAddress));
         currentIdentifierAddress_ = 0;
-        isIdentifierAddressPointer_ = true;
+        isCurrentIdentifierAddressPointer_ = true;
     }
 }
 
@@ -119,7 +124,7 @@ void AssemblerGeneratorVisitor::visitAssignmentNode(const AssignmentNode& assign
 
     assignmentNode.getIdentifierNode()->accept(*this);
     long long identifierAddress = currentIdentifierAddress_;
-    if (isIdentifierAddressPointer_) {
+    if (isCurrentIdentifierAddressPointer_) {
         storeCommand += "I";
         writeLineToOutputFile("STORE 3");
         identifierAddress = 3;
@@ -151,18 +156,36 @@ void AssemblerGeneratorVisitor::visitIfNode(const IfNode& ifNode) {
     unresolvedJumpsCounter_++;
 
     if (!ifNode.getElseCommandsNode()) {
-        writeLineToOutputFile(currentConditionJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
+        if (isCurrentJumpForTrueCondition_) {
+            writeLineToOutputFile(currentJumpType_ + " 2 # IF");
+            writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
+        } else {
+            writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL + " # IF");
+        }
+
         ifNode.getThenCommandsNode()->accept(*this);
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpIndex) + RESULT_LABEL);
     } else {
-        writeLineToOutputFile(currentConditionJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
-        ifNode.getThenCommandsNode()->accept(*this);
-        const int jumpOverElseIndex = unresolvedJumpsCounter_;
+        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL + " # IF");
+        if (isCurrentJumpForTrueCondition_) {
+            ifNode.getElseCommandsNode()->accept(*this);
+        } else {
+            ifNode.getThenCommandsNode()->accept(*this);
+        }
+
+        const int jumpOverSecondPartIndex = unresolvedJumpsCounter_;
         unresolvedJumpsCounter_++;
-        writeLineToOutputFile("JUMP __" + std::to_string(jumpOverElseIndex) + FILL_LABEL);
+
+        writeLineToOutputFile("JUMP __" + std::to_string(jumpOverSecondPartIndex) + FILL_LABEL);
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpIndex) + RESULT_LABEL);
-        ifNode.getElseCommandsNode()->accept(*this);
-        writeToOutputFile(RESULT_LABEL + std::to_string(jumpOverElseIndex) + RESULT_LABEL);
+
+        if (isCurrentJumpForTrueCondition_) {
+            ifNode.getThenCommandsNode()->accept(*this);
+        } else {
+            ifNode.getElseCommandsNode()->accept(*this);
+        }
+
+        writeToOutputFile(RESULT_LABEL + std::to_string(jumpOverSecondPartIndex) + RESULT_LABEL);
     }
 }
 
@@ -186,7 +209,7 @@ void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proced
 
 void AssemblerGeneratorVisitor::visitReadNode(const ReadNode& readNode) {
     readNode.getIdentifierNode()->accept(*this);
-    if (isIdentifierAddressPointer_) {
+    if (isCurrentIdentifierAddressPointer_) {
         writeLineToOutputFile("STORE 3");
         writeLineToOutputFile("GET 0");
         writeLineToOutputFile("STOREI 3");
@@ -209,7 +232,7 @@ void AssemblerGeneratorVisitor::visitWriteNode(const WriteNode& writeNode) {
         writeLineToOutputFile("SET " + std::to_string(*currentValue_));
         writeLineToOutputFile("PUT 0");
     } else {
-        if (isIdentifierAddressPointer_) {
+        if (isCurrentIdentifierAddressPointer_) {
             writeLineToOutputFile("LOADI 0");
             writeLineToOutputFile("PUT 0");
         } else {
@@ -226,7 +249,7 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     valueNode1->accept(*this);
     const std::optional<long long> firstValue = currentValue_;
     long long firstAddress = currentIdentifierAddress_;
-    if (!firstValue && isIdentifierAddressPointer_) {
+    if (!firstValue && isCurrentIdentifierAddressPointer_) {
         isFirstAddressPointer = true;
         writeLineToOutputFile("STORE 3");
         firstAddress = 3;
@@ -235,7 +258,7 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     valueNode2->accept(*this);
     std::optional<long long> secondValue = currentValue_;
     long long secondAddress = currentIdentifierAddress_;
-    if (!secondValue && isIdentifierAddressPointer_) {
+    if (!secondValue && isCurrentIdentifierAddressPointer_) {
         isSecondAddressPointer = true;
         writeLineToOutputFile("STORE 2");
         secondAddress = 2;

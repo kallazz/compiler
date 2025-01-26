@@ -71,9 +71,10 @@ private:
     const SymbolTable& symbolTable_;
     std::string outputAssemblerCode_;
     long long currentIdentifierAddress_;
-    bool isIdentifierAddressPointer_;
+    bool isCurrentIdentifierAddressPointer_;
     std::optional<long long> currentValue_;
-    std::string currentConditionJumpType_;
+    std::string currentJumpType_;
+    bool isCurrentJumpForTrueCondition_;
     int unresolvedJumpsCounter_;
 };
 
