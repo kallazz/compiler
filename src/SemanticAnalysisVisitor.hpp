@@ -56,6 +56,7 @@ private:
 
     SymbolTable& symbolTable_;
     std::optional<std::string> currentProcedureName_;
+    int forLoopsCounter_;
     bool willNumberVariableBeModified_;
 };
 

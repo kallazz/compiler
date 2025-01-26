@@ -19,7 +19,7 @@
 #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
 
-SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), willNumberVariableBeModified_(false) {}
+SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {}
 
 bool SemanticAnalysisVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     if (!conditionNode.getValueNode1()->accept(*this)) {
@@ -138,14 +138,21 @@ bool SemanticAnalysisVisitor::visitDeclarationsNode(const DeclarationsNode& decl
 bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
     const std::string& iteratorName = forLoopNode.getIteratorName();
 
+    const int currentForLoopIndex = forLoopsCounter_;
+    forLoopsCounter_++;
+
+    const std::string iteratorBoundVariableName = "!ITBOUND" + std::to_string(currentForLoopIndex) + iteratorName;
+
     if (isProcedureBeingProcessed()) {
         if (!symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorName, *currentProcedureName_, true, true)) {
             return false;
         }
+        symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorBoundVariableName, *currentProcedureName_, false, false);
     } else {
         if (!symbolTable_.declareNumberVariableInMain(forLoopNode.getLineNumber(), iteratorName, true, true)) {
             return false;
         }
+        symbolTable_.declareNumberVariableInMain(forLoopNode.getLineNumber(), iteratorBoundVariableName, false, false);
     }
 
     if (!forLoopNode.getStartValueNode()->accept(*this)) {
@@ -160,10 +167,12 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
         return false;
     }
 
+    const std::string newIteratorName = "!IT" + std::to_string(currentForLoopIndex) + iteratorName;
+
     if (isProcedureBeingProcessed()) {
-        symbolTable_.removeVariableFromProcedure(iteratorName, *currentProcedureName_);
+        symbolTable_.renameVariableInProcedure(iteratorName, newIteratorName, *currentProcedureName_);
     } else {
-        symbolTable_.removeVariableFromMain(iteratorName);
+        symbolTable_.renameVariableInMain(iteratorName, newIteratorName);
     }
 
     return true;

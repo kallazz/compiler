@@ -45,8 +45,8 @@ public:
     bool declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations);
     bool verifyProcedureCall(const int lineNumber, const std::string& name, const std::vector<Argument>& arguments, const std::optional<std::string> scopeProcedureName);
 
-    void removeVariableFromMain(const std::string& name);
-    void removeVariableFromProcedure(const std::string& name, const std::string& procedureName);
+    void renameVariableInMain(const std::string& name, const std::string& newName);
+    void renameVariableInProcedure(const std::string& name, const std::string& newName, const std::string& procedureName);
 
     long long getVariableAddressInMain(const std::string& name) const;
     long long getVariableAddressInProcedure(const std::string& name) const;

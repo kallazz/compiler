@@ -131,13 +131,17 @@ bool SymbolTable::verifyProcedureCall(const int lineNumber, const std::string& n
     return true;
 }
 
-void SymbolTable::removeVariableFromMain(const std::string& name) {
+void SymbolTable::renameVariableInMain(const std::string& name, const std::string& newName) {
+    VariableInfo variableInfo = mainVariableTable_.at(name);
     mainVariableTable_.erase(name);
+    mainVariableTable_.insert({newName, variableInfo});
 }
 
-void SymbolTable::removeVariableFromProcedure(const std::string& name, const std::string& procedureName) {
+void SymbolTable::renameVariableInProcedure(const std::string& name, const std::string& newName, const std::string& procedureName) {
     auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    VariableInfo variableInfo = procedureVariableTable.at(name);
     procedureVariableTable.erase(name);
+    procedureVariableTable.insert({newName, variableInfo});
 }
 
 bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string& name, std::unordered_map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos, const bool isIterator, const bool isInitialized) {

@@ -32,7 +32,7 @@ Registers' purpose:
 */
 
 AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable)
-    : symbolTable_(symbolTable), outputAssemblerCode_(""), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0) {}
+    : symbolTable_(symbolTable), shouldWriteComments_(true), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
@@ -87,15 +87,29 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
 
 void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
     // TODO: Add procedure logic
+    std::string variableName = identifierNode.getName();
+
+    const auto it = iteratorProgramNameToIteratorInternalName_.find(variableName);
+    if (it != iteratorProgramNameToIteratorInternalName_.end()) {
+        variableName = it->second;
+    }
+
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
-        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(identifierNode.getName());
+        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName);
         isCurrentIdentifierAddressPointer_ = false;
     } else if (identifierNode.getIndexValue()) {
-        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(identifierNode.getName()) + *identifierNode.getIndexValue();
+        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName) + *identifierNode.getIndexValue();
         isCurrentIdentifierAddressPointer_ = false;
     } else if (identifierNode.getIndexName()) {
-        const long long arrayAddress = symbolTable_.getVariableAddressInMain(identifierNode.getName());
-        const long long arrayIndexNameAddress = symbolTable_.getVariableAddressInMain(*identifierNode.getIndexName());
+        std::string indexName = *identifierNode.getIndexName();
+
+        const auto it = iteratorProgramNameToIteratorInternalName_.find(indexName);
+        if (it != iteratorProgramNameToIteratorInternalName_.end()) {
+            indexName = it->second;
+        }
+
+        const long long arrayAddress = symbolTable_.getVariableAddressInMain(variableName);
+        const long long arrayIndexNameAddress = symbolTable_.getVariableAddressInMain(indexName);
         writeLineToOutputFile("SET " + std::to_string(arrayAddress));
         writeLineToOutputFile("ADD " + std::to_string(arrayIndexNameAddress));
         currentIdentifierAddress_ = 0;
@@ -145,11 +159,79 @@ void AssemblerGeneratorVisitor::visitDeclarationsNode(const DeclarationsNode& de
     return;
 }
 
+ValueNode* copyValueNode(const std::unique_ptr<ValueNode>& valueNode) {
+    const int lineNumber = valueNode->getLineNumber();
+    if (valueNode->getIdentifierNode()) {
+        const int identifierNodeLineNumber = valueNode->getIdentifierNode()->getLineNumber();
+        const std::string identifierNodeName = valueNode->getIdentifierNode()->getName();
+
+        if (valueNode->getIdentifierNode()->getIndexName()) {
+            const std::string identifierNodeIndexName = *valueNode->getIdentifierNode()->getIndexName();
+            return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexName));
+        }
+        if (valueNode->getIdentifierNode()->getIndexValue()) {
+            const long long identifierNodeIndexValue = *valueNode->getIdentifierNode()->getIndexValue();
+            return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexValue));
+        }
+        return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName));
+    }
+
+    const long long number = *valueNode->getNumber(); 
+
+    return new ValueNode(lineNumber, number);
+}
+
 void AssemblerGeneratorVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
-    return;
+    writeCommentLineToOutputFile("FOR");
+
+    const int currentForLoopIndex = forLoopsCounter_;
+    forLoopsCounter_++;
+
+    const int backToStartjumpIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+    const int afterLoopJumpIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+
+    const std::string iteratorName = "!IT" + std::to_string(currentForLoopIndex) + forLoopNode.getIteratorName();
+    const std::string iteratorBoundName = "!ITBOUND" + std::to_string(currentForLoopIndex) + forLoopNode.getIteratorName();
+
+    iteratorProgramNameToIteratorInternalName_.insert({forLoopNode.getIteratorName(), iteratorName});
+
+    const AssignmentNode iteratorAssignmentNode(0, new IdentifierNode(0, iteratorName), new ExpressionNode(0, copyValueNode(forLoopNode.getStartValueNode())));
+    const AssignmentNode iteratorBoundAssignmentNode(0, new IdentifierNode(0, iteratorBoundName), new ExpressionNode(0, copyValueNode(forLoopNode.getEndValueNode())));
+    iteratorAssignmentNode.accept(*this);
+    iteratorBoundAssignmentNode.accept(*this);
+
+    writeToOutputFile(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+
+    const ComparsionOperator comparsionOperator = forLoopNode.isIteratorIncremented() ? ComparsionOperator::LESS_THAN_OR_EQUAL : ComparsionOperator::GREATER_THAN_OR_EQUAL;
+    const ConditionNode conditionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)), new ValueNode(0, new IdentifierNode(0, iteratorBoundName)), comparsionOperator);
+    conditionNode.accept(*this);
+
+    if (isCurrentJumpForTrueCondition_) {
+        writeLineToOutputFile(currentJumpType_ + " 2");
+        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(afterLoopJumpIndex) + FILL_LABEL);
+    } else {
+        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(afterLoopJumpIndex) + FILL_LABEL);
+    }
+
+    forLoopNode.getCommandsNode()->accept(*this);
+
+    const MathematicalOperator mathematicalOperator = forLoopNode.isIteratorIncremented() ? MathematicalOperator::ADD : MathematicalOperator::SUBTRACT;
+    const AssignmentNode iteratorIncrementAssignmentNode(0, new IdentifierNode(0, iteratorName), new ExpressionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)), new ValueNode(0, 1), mathematicalOperator));
+    iteratorIncrementAssignmentNode.accept(*this);
+
+    writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(backToStartjumpIndex) + FILL_LABEL);
+    writeToOutputFile(RESULT_LABEL + std::to_string(afterLoopJumpIndex) + RESULT_LABEL);
+
+    iteratorProgramNameToIteratorInternalName_.erase(forLoopNode.getIteratorName());
+
+    writeCommentLineToOutputFile("ENDFOR");
 }
 
 void AssemblerGeneratorVisitor::visitIfNode(const IfNode& ifNode) {
+    writeCommentLineToOutputFile("IF");
+
     ifNode.getConditionNode()->accept(*this);
 
     const int jumpIndex = unresolvedJumpsCounter_;
@@ -157,16 +239,16 @@ void AssemblerGeneratorVisitor::visitIfNode(const IfNode& ifNode) {
 
     if (!ifNode.getElseCommandsNode()) {
         if (isCurrentJumpForTrueCondition_) {
-            writeLineToOutputFile(currentJumpType_ + " 2 # IF");
+            writeLineToOutputFile(currentJumpType_ + " 2");
             writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
         } else {
-            writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL + " # IF");
+            writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
         }
 
         ifNode.getThenCommandsNode()->accept(*this);
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpIndex) + RESULT_LABEL);
     } else {
-        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL + " # IF");
+        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(jumpIndex) + FILL_LABEL);
         if (isCurrentJumpForTrueCondition_) {
             ifNode.getElseCommandsNode()->accept(*this);
         } else {
@@ -176,7 +258,7 @@ void AssemblerGeneratorVisitor::visitIfNode(const IfNode& ifNode) {
         const int jumpOverSecondPartIndex = unresolvedJumpsCounter_;
         unresolvedJumpsCounter_++;
 
-        writeLineToOutputFile("JUMP __" + std::to_string(jumpOverSecondPartIndex) + FILL_LABEL);
+        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(jumpOverSecondPartIndex) + FILL_LABEL);
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpIndex) + RESULT_LABEL);
 
         if (isCurrentJumpForTrueCondition_) {
@@ -187,6 +269,8 @@ void AssemblerGeneratorVisitor::visitIfNode(const IfNode& ifNode) {
 
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpOverSecondPartIndex) + RESULT_LABEL);
     }
+
+    writeCommentLineToOutputFile("ENDIF");
 }
 
 void AssemblerGeneratorVisitor::visitMainNode(const MainNode& mainNode) {
@@ -219,11 +303,51 @@ void AssemblerGeneratorVisitor::visitReadNode(const ReadNode& readNode) {
 }
 
 void AssemblerGeneratorVisitor::visitRepeatLoopNode(const RepeatLoopNode& repeatLoopNode) {
-    return;
+    writeCommentLineToOutputFile("REPEAT");
+
+    const int backToStartjumpIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+
+    writeToOutputFile(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+
+    repeatLoopNode.getCommandsNode()->accept(*this);
+    repeatLoopNode.getConditionNode()->accept(*this);
+
+    if (isCurrentJumpForTrueCondition_) {
+        writeLineToOutputFile(currentJumpType_ + " 2");
+        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(backToStartjumpIndex) + FILL_LABEL);
+    } else {
+        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(backToStartjumpIndex) + FILL_LABEL);
+    }
+
+    writeCommentLineToOutputFile("ENDREPEAT");
 }
 
 void AssemblerGeneratorVisitor::visitWhileLoopNode(const WhileLoopNode& whileLoopNode) {
-    return;
+    writeCommentLineToOutputFile("WHILE");
+
+    const int backToStartjumpIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+    const int afterLoopJumpIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+
+    writeToOutputFile(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+
+    whileLoopNode.getConditionNode()->accept(*this);
+
+    if (isCurrentJumpForTrueCondition_) {
+        writeLineToOutputFile(currentJumpType_ + " 2");
+        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(afterLoopJumpIndex) + FILL_LABEL);
+    } else {
+        writeLineToOutputFile(currentJumpType_ + " " + FILL_LABEL + std::to_string(afterLoopJumpIndex) + FILL_LABEL);
+    }
+
+    whileLoopNode.getCommandsNode()->accept(*this);
+
+    writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(backToStartjumpIndex) + FILL_LABEL);
+    writeToOutputFile(RESULT_LABEL + std::to_string(afterLoopJumpIndex) + RESULT_LABEL);
+
+    writeCommentLineToOutputFile("ENDWHILE");
 }
 
 void AssemblerGeneratorVisitor::visitWriteNode(const WriteNode& writeNode) {
@@ -316,6 +440,12 @@ void AssemblerGeneratorVisitor::writeToOutputFile(const std::string& text) {
 
 void AssemblerGeneratorVisitor::writeLineToOutputFile(const std::string& text) {
     outputAssemblerCode_ += text + '\n';
+}
+
+void AssemblerGeneratorVisitor::writeCommentLineToOutputFile(const std::string& text) {
+    if (shouldWriteComments_) {
+        outputAssemblerCode_ += "# " + text + '\n';
+    }
 }
 
 std::string resolveResultLabels(const std::string& code, std::unordered_map<int, int>& jumpIndexToResultLabelLineNumber) {

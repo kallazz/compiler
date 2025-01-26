@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 class SymbolTable;
 
@@ -66,16 +67,20 @@ private:
     void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator);
     void writeToOutputFile(const std::string& text);
     void writeLineToOutputFile(const std::string& text);
+    void writeCommentLineToOutputFile(const std::string& text);
     void resolveLabels();
 
     const SymbolTable& symbolTable_;
+    const bool shouldWriteComments_;
     std::string outputAssemblerCode_;
+    int forLoopsCounter_;
     long long currentIdentifierAddress_;
     bool isCurrentIdentifierAddressPointer_;
     std::optional<long long> currentValue_;
     std::string currentJumpType_;
     bool isCurrentJumpForTrueCondition_;
     int unresolvedJumpsCounter_;
+    std::unordered_map<std::string, std::string> iteratorProgramNameToIteratorInternalName_;
 };
 
 #endif // ASSEMBLER_GENERATOR_VISITOR_HPP

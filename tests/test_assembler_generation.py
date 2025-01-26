@@ -103,19 +103,87 @@ def test_write(input_code, expected_output_assembler_code):
 @pytest.mark.parametrize(
     "input_code, expected_output_assembler_code",
     [
-        ("PROGRAM IS BEGIN IF 15 = 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 2\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 = 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 != 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 != 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 > 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 2\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 > 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 < 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 2\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 < 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 >= 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 >= 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 <= 17 THEN WRITE 1; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 3\nSET 1\nPUT 0\n"),
-        ("PROGRAM IS BEGIN IF 15 <= 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END", "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n"),
+        (
+            "PROGRAM IS BEGIN IF 15 = 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 2\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 = 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 != 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 != 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJZERO 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 > 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 2\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 > 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 < 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 2\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 < 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 4\nSET 0\nPUT 0\nJUMP 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 >= 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 >= 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJNEG 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 <= 17 THEN WRITE 1; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 3\nSET 1\nPUT 0\n",
+        ),
+        (
+            "PROGRAM IS BEGIN IF 15 <= 17 THEN WRITE 1; ELSE WRITE 0; ENDIF END",
+            "SET 15\nSTORE 1\nSET -17\nADD 1\nJPOS 4\nSET 1\nPUT 0\nJUMP 3\nSET 0\nPUT 0\n",
+        ),
     ],
 )
 def test_if(input_code, expected_output_assembler_code):
+    _run_assembler_generator_test(input_code, expected_output_assembler_code)
+
+
+def test_while_loop():
+    input_code = "PROGRAM IS i BEGIN i := 10; WHILE i <= 10 DO WRITE i; i := i + 1; ENDWHILE END"
+    expected_output_assembler_code = "SET -10\nADD 4\nJPOS 6\nPUT 4\nSET 1\nADD 4\nSTORE 4\nJUMP -7\n"
+
+    _run_assembler_generator_test(input_code, expected_output_assembler_code)
+
+
+def test_repeat_loop():
+    input_code = "PROGRAM IS i BEGIN i := 10; REPEAT WRITE i; i := i + 1; UNTIL i > 10; END"
+    expected_output_assembler_code = "PUT 4\nSET 1\nADD 4\nSTORE 4\nSET -10\nADD 4\nJPOS 2\nJUMP -7\n"
+
+    _run_assembler_generator_test(input_code, expected_output_assembler_code)
+
+
+@pytest.mark.parametrize(
+    "input_code, expected_output_assembler_code",
+    [
+        (
+            "PROGRAM IS BEGIN FOR i FROM 5 TO 10 DO WRITE i; ENDFOR END",
+            "SET 5\nSTORE 4\nSET 10\nSTORE 5\nLOAD 4\nSUB 5\nJPOS 6\nPUT 4\nSET 1\nADD 4\nSTORE 4\nJUMP -7\n",
+        ),
+        (
+            "PROGRAM IS BEGIN FOR i FROM 10 DOWNTO 5 DO WRITE i; ENDFOR END",
+            "SET 10\nSTORE 4\nSET 5\nSTORE 5\nLOAD 4\nSUB 5\nJNEG 6\nPUT 4\nSET -1\nADD 4\nSTORE 4\nJUMP -7\n",
+        ),
+    ],
+)
+def test_for_loop(input_code, expected_output_assembler_code):
+
     _run_assembler_generator_test(input_code, expected_output_assembler_code)
