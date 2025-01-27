@@ -26,6 +26,7 @@ struct ArgumentInfo {
 struct ProcedureInfo {
     const std::vector<ArgumentInfo> argumentInfos;
     std::unordered_map<std::string, VariableInfo> variableTable;
+    const long long returnAddress;
 };
 
 class SymbolTable {
@@ -49,7 +50,9 @@ public:
     void renameVariableInProcedure(const std::string& name, const std::string& newName, const std::string& procedureName);
 
     long long getVariableAddressInMain(const std::string& name) const;
-    long long getVariableAddressInProcedure(const std::string& name) const;
+    std::pair<long long, bool> getVariableAddressInProcedure(const std::string& name, const std::string& procedureName) const;
+    std::vector<long long> getProcedureArgumentsAddresses(const std::string& procedureName) const;
+    long long getProcedureReturnAddress(const std::string& procedureName) const;
 
     CompilationError getCompilationError() const;
 
@@ -61,7 +64,7 @@ private:
     bool checkIfNumberVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::vector<ArgumentInfo>& argumentInfos);
     bool checkIfArrayVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::vector<ArgumentInfo>& argumentInfos);
     std::optional<std::pair<bool, ArgumentType>> checkIfVariableExistsAndSetItAsInitializedAndGetItsInfo(const std::string& name, const std::optional<std::string> scopeProcedureName);
-    std::optional<ArgumentInfo> findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos);
+    std::optional<ArgumentInfo> findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos) const;
 
     std::unordered_map<std::string, VariableInfo> mainVariableTable_;
     std::unordered_map<std::string, ProcedureInfo> procedureTable_;

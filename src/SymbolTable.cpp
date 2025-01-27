@@ -79,7 +79,8 @@ bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name
         currentAvailableAddress_++;
     }
 
-    procedureTable_.insert({name, {argumentInfos, std::unordered_map<std::string, VariableInfo>()}});
+    procedureTable_.insert({name, {argumentInfos, std::unordered_map<std::string, VariableInfo>(), currentAvailableAddress_}});
+    currentAvailableAddress_++;
 
     return true;
 }
@@ -314,7 +315,7 @@ std::optional<std::pair<bool, ArgumentType>> SymbolTable::checkIfVariableExistsA
     return std::make_pair(false, (*argumentInfo).type);
 }
 
-std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos) {
+std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos) const {
     for (const auto& argumentInfo : argumentInfos) {
         if (argumentName == argumentInfo.name) {
             return argumentInfo;
@@ -328,9 +329,33 @@ long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
     return mainVariableTable_.at(name).address;
 }
 
-long long SymbolTable::getVariableAddressInProcedure(const std::string& name) const {
-    // TODO: Implement logic
-    return 10;
+std::pair<long long, bool> SymbolTable::getVariableAddressInProcedure(const std::string& name, const std::string& procedureName) const {
+    const auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
+
+    const auto it = procedureVariableTable.find(name);
+    if (it != procedureVariableTable.end()) {
+        const bool isPointer = false;
+        return {it->second.address, isPointer};
+    }
+
+    const bool isPointer = true;
+    return {(*findArgumentInfo(name, procedureArgumentInfos)).address, isPointer};
+}
+
+std::vector<long long> SymbolTable::getProcedureArgumentsAddresses(const std::string& procedureName) const {
+    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
+    std::vector<long long> argumentsAddresses;
+
+    for (const auto& argumentInfo : procedureArgumentInfos) {
+        argumentsAddresses.push_back(argumentInfo.address);
+    }
+
+    return argumentsAddresses;
+}
+
+long long SymbolTable::getProcedureReturnAddress(const std::string& procedureName) const {
+    return procedureTable_.at(procedureName).returnAddress;
 }
 
 CompilationError SymbolTable::getCompilationError() const {

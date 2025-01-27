@@ -65,6 +65,8 @@ public:
 
 private:
     void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator);
+    void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
+    std::string getVariableNameOrIteratorName(const std::string& variableName);
     void writeToOutputFile(const std::string& text);
     void writeLineToOutputFile(const std::string& text);
     void writeCommentLineToOutputFile(const std::string& text);
@@ -76,11 +78,15 @@ private:
     int forLoopsCounter_;
     long long currentIdentifierAddress_;
     bool isCurrentIdentifierAddressPointer_;
+    bool isCurrentIdentifierAddressCalculatedPointerForArray_;
     std::optional<long long> currentValue_;
     std::string currentJumpType_;
     bool isCurrentJumpForTrueCondition_;
     int unresolvedJumpsCounter_;
+    int currentLineNumber_;
+    std::optional<std::string> currentProcedureName_;
     std::unordered_map<std::string, std::string> iteratorProgramNameToIteratorInternalName_;
+    std::unordered_map<std::string, int> procedureNameToJumpIndex;
 };
 
 #endif // ASSEMBLER_GENERATOR_VISITOR_HPP

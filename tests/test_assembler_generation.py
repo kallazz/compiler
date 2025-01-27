@@ -23,7 +23,6 @@ def _run_assembler_generator_test(input_code: str, expected_output_numbers: list
 
     assert vm_result.returncode == 0
 
-    print(f"The stdout is {vm_result.stdout}")
     output_numbers = re.findall(r">\s*(-?\d+)", vm_result.stdout, re.MULTILINE)
     output_numbers = list(map(int, output_numbers))
 
@@ -84,6 +83,7 @@ def test_assignment(input_code, expected_output_numbers):
         ("PROGRAM IS x, y BEGIN y := 15; x := y - 17; WRITE x; END", [-2]),
         ("PROGRAM IS x, y BEGIN y := 17; x := 15 - y; WRITE x; END", [-2]),
         ("PROGRAM IS x, y[5:10], n BEGIN n := 5; y[n] := 17; x := 15 + y[n]; WRITE x; END", [32]),
+        ("PROGRAM IS z[-7:7], x[-5:10], y[5:10], n BEGIN n := 5; y[n] := 17; x[n] := 15; z[n] := x[n] + y[n]; WRITE z[n]; END", [32]),
     ],
 )
 def test_assignment_with_expression(input_code, expected_output_numbers):
@@ -154,3 +154,19 @@ def test_repeat_loop():
 )
 def test_for_loop(input_code, expected_output_numbers):
     _run_assembler_generator_test(input_code, expected_output_numbers)
+
+@pytest.mark.parametrize(
+    "input_code, expected_output_numbers, user_input",
+    [
+        ("PROCEDURE write_proc(proc_x) IS BEGIN WRITE proc_x; END PROGRAM IS main_x BEGIN main_x := 123; write_proc(main_x); END", [123], ""),
+        ("PROCEDURE read_proc(proc_x) IS BEGIN READ proc_x; END PROGRAM IS main_x BEGIN read_proc(main_x); WRITE main_x; END", [124], "124\n"),
+        ("PROCEDURE add(x, y, z) IS BEGIN z := x + y; END PROGRAM IS x, y, z BEGIN x := 15; y := 17; add(x, y, z); WRITE x; WRITE y; WRITE z; END", [15, 17, 32], ""),
+        ("PROCEDURE add(T x, T y, T z) IS BEGIN z[3] := x[1] + y[2]; END PROGRAM IS x[-5:5], y[0:5], z[-10:10] BEGIN x[1] := 15; y[2] := 17; add(x, y, z); WRITE x[1]; WRITE y[2]; WRITE z[3]; END", [15, 17, 32], ""),
+        ("PROCEDURE add(T x, T y, T z) IS a, b, c BEGIN a := 3; b := 1; c := 2; z[a] := x[b] + y[c]; END PROGRAM IS x[-5:5], y[0:5], z[-10:10] BEGIN x[1] := 15; y[2] := 17; add(x, y, z); WRITE x[1]; WRITE y[2]; WRITE z[3]; END", [15, 17, 32], ""),
+        ("PROCEDURE add(T x, T y, T z, a, b, c) IS BEGIN z[a] := x[b] + y[c]; END PROGRAM IS x[-5:5], y[0:5], z[-10:10], a, b, c BEGIN x[1] := 15; y[2] := 17; a := 3; b := 1; c := 2; add(x, y, z, a, b, c); WRITE x[1]; WRITE y[2]; WRITE z[3]; END", [15, 17, 32], ""),
+        ("PROCEDURE modify(T t) IS BEGIN t[10] := 125; END PROCEDURE modify_in_another_proc(T t) IS BEGIN modify(t); END PROGRAM IS t[-10:10] BEGIN modify_in_another_proc(t); WRITE t[10]; END", [125], ""),
+        ("PROCEDURE modify(T t, n) IS BEGIN t[n] := 126; END PROCEDURE modify_in_another_proc(T t, n) IS BEGIN modify(t, n); END PROGRAM IS t[-10:10], n BEGIN n := 10; modify_in_another_proc(t, n); WRITE t[10]; END", [126], ""),
+    ],
+)
+def test_procedures(input_code, expected_output_numbers, user_input):
+    _run_assembler_generator_test(input_code, expected_output_numbers, user_input)

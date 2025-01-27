@@ -32,7 +32,7 @@ Registers' purpose:
 */
 
 AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable)
-    : symbolTable_(symbolTable), shouldWriteComments_(true), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0) {}
+    : symbolTable_(symbolTable), shouldWriteComments_(false), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentProcedureName_(std::nullopt), currentLineNumber_(0) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
@@ -70,7 +70,11 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
         if (currentValue_) {
             writeLineToOutputFile("SET " + std::to_string(*currentValue_));
         } else {
-            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
+            if (isCurrentIdentifierAddressPointer_ && !isCurrentIdentifierAddressCalculatedPointerForArray_) {
+                writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
+            } else {
+                writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
+            }
         }
 
         return;
@@ -82,38 +86,70 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
         // TODO: Add logic
     } else if (expressionNode.getMathematicalOperator() == MathematicalOperator::DIVIDE) {
         // TODO: Add logic
+        divide(expressionNode.getValueNode1(), expressionNode.getValueNode2());
+    } else if (expressionNode.getMathematicalOperator() == MathematicalOperator::MODULO) {
+        // TODO: Add logic
     }
 }
 
 void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
     // TODO: Add procedure logic
-    std::string variableName = identifierNode.getName();
+    const std::string variableName = getVariableNameOrIteratorName(identifierNode.getName());
 
-    const auto it = iteratorProgramNameToIteratorInternalName_.find(variableName);
-    if (it != iteratorProgramNameToIteratorInternalName_.end()) {
-        variableName = it->second;
-    }
-
+    isCurrentIdentifierAddressPointer_  = false;
+    isCurrentIdentifierAddressCalculatedPointerForArray_ = false;
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
-        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName);
-        isCurrentIdentifierAddressPointer_ = false;
+        if (currentProcedureName_) {
+            const auto [address, isPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            currentIdentifierAddress_ = address;
+            isCurrentIdentifierAddressPointer_ = isPointer;
+        } else {
+            currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName);
+        }
     } else if (identifierNode.getIndexValue()) {
-        currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName) + *identifierNode.getIndexValue();
-        isCurrentIdentifierAddressPointer_ = false;
-    } else if (identifierNode.getIndexName()) {
-        std::string indexName = *identifierNode.getIndexName();
+        if (currentProcedureName_) {
+            const auto [arrayAddress, isPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            isCurrentIdentifierAddressPointer_ = isPointer;
 
-        const auto it = iteratorProgramNameToIteratorInternalName_.find(indexName);
-        if (it != iteratorProgramNameToIteratorInternalName_.end()) {
-            indexName = it->second;
+            if (isCurrentIdentifierAddressPointer_) {
+                writeLineToOutputFile("SET " + std::to_string(*identifierNode.getIndexValue()));
+                writeLineToOutputFile("ADD " + std::to_string(arrayAddress));
+
+                currentIdentifierAddress_ = 0;
+                isCurrentIdentifierAddressPointer_ = true;
+                isCurrentIdentifierAddressCalculatedPointerForArray_ = true;
+            } else {
+                currentIdentifierAddress_ = arrayAddress + *identifierNode.getIndexValue();
+            }
+        } else {
+            currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName) + *identifierNode.getIndexValue();
+        }
+    } else if (identifierNode.getIndexName()) {
+        const std::string indexName = getVariableNameOrIteratorName(*identifierNode.getIndexName());
+
+        if (currentProcedureName_) {
+            const auto [arrayAddress, isArrayPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            const auto [arrayIndexNameAddress , isIndexPointer] = symbolTable_.getVariableAddressInProcedure(indexName, *currentProcedureName_);
+
+            const std::string addCommand = isIndexPointer ? "ADDI" : "ADD";
+
+            if (isArrayPointer) {
+                writeLineToOutputFile("LOAD " + std::to_string(arrayAddress));
+                writeLineToOutputFile(addCommand + " " + std::to_string(arrayIndexNameAddress));
+            } else {
+                writeLineToOutputFile("SET " + std::to_string(arrayAddress));
+                writeLineToOutputFile(addCommand + " " + std::to_string(arrayIndexNameAddress));
+            }
+        } else {
+            const long long arrayAddress = symbolTable_.getVariableAddressInMain(variableName);
+            const long long arrayIndexNameAddress = symbolTable_.getVariableAddressInMain(indexName);
+            writeLineToOutputFile("SET " + std::to_string(arrayAddress));
+            writeLineToOutputFile("ADD " + std::to_string(arrayIndexNameAddress));
         }
 
-        const long long arrayAddress = symbolTable_.getVariableAddressInMain(variableName);
-        const long long arrayIndexNameAddress = symbolTable_.getVariableAddressInMain(indexName);
-        writeLineToOutputFile("SET " + std::to_string(arrayAddress));
-        writeLineToOutputFile("ADD " + std::to_string(arrayIndexNameAddress));
         currentIdentifierAddress_ = 0;
         isCurrentIdentifierAddressPointer_ = true;
+        isCurrentIdentifierAddressCalculatedPointerForArray_ = true;
     }
 }
 
@@ -140,8 +176,11 @@ void AssemblerGeneratorVisitor::visitAssignmentNode(const AssignmentNode& assign
     long long identifierAddress = currentIdentifierAddress_;
     if (isCurrentIdentifierAddressPointer_) {
         storeCommand += "I";
-        writeLineToOutputFile("STORE 3");
-        identifierAddress = 3;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 3");
+            identifierAddress = 3;
+        }
     }
 
     assignmentNode.getExpressionNode()->accept(*this);
@@ -280,7 +319,37 @@ void AssemblerGeneratorVisitor::visitMainNode(const MainNode& mainNode) {
 }
 
 void AssemblerGeneratorVisitor::visitProcedureCallNode(const ProcedureCallNode& procedureCallNode) {
-    return;
+    writeCommentLineToOutputFile("CALL " + procedureCallNode.getName());
+
+    const std::string& procedureName = procedureCallNode.getName();
+    const auto& callArguments = procedureCallNode.getArgumentsNode()->getArguments();
+    const auto calledProcedureArgumentsAddresses = symbolTable_.getProcedureArgumentsAddresses(procedureName);
+
+    for (int i = 0; i < callArguments.size(); i++) {
+
+        const std::string callArgumentName = getVariableNameOrIteratorName(callArguments[i].name);
+        long long callArgumentAddress;
+        bool isCallArgumentPointer;
+        if (currentProcedureName_) {
+            const auto [address, isPointer] = symbolTable_.getVariableAddressInProcedure(callArgumentName, *currentProcedureName_);
+            callArgumentAddress = address;
+            isCallArgumentPointer = isPointer;
+        } else {
+            callArgumentAddress = symbolTable_.getVariableAddressInMain(callArgumentName);
+            isCallArgumentPointer = false;
+        }
+        const long long procedureArgumentAddress = calledProcedureArgumentsAddresses[i];
+
+        const std::string command = isCallArgumentPointer ? "LOAD" : "SET";
+        writeLineToOutputFile(command + " " + std::to_string(callArgumentAddress));
+        writeLineToOutputFile("STORE " + std::to_string(procedureArgumentAddress));
+    }
+
+    writeLineToOutputFile("SET " + std::to_string(currentLineNumber_ + 3));
+    writeLineToOutputFile("STORE " + std::to_string(symbolTable_.getProcedureReturnAddress(procedureName)));
+    writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(procedureName)) + FILL_LABEL);
+    
+    writeCommentLineToOutputFile("ENDCALL " + procedureCallNode.getName());
 }
 
 void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode& procedureHeadNode) {
@@ -288,15 +357,45 @@ void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode& 
 }
 
 void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proceduresNode) {
-    return;
+    if (!proceduresNode.getProcedures().empty()) {
+        const int jumpOverAllProceduresIndex = unresolvedJumpsCounter_;
+        unresolvedJumpsCounter_++;
+
+        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(jumpOverAllProceduresIndex) + FILL_LABEL);
+
+        for (const auto& procedure : proceduresNode.getProcedures()) {
+            currentProcedureName_ = procedure->procedureHeadNode->getName();
+
+            const int jumpToCurrentProcedureIndex = unresolvedJumpsCounter_;
+            unresolvedJumpsCounter_++;
+            procedureNameToJumpIndex.insert({*currentProcedureName_, jumpToCurrentProcedureIndex});
+
+            writeCommentLineToOutputFile("PROCEDURE " + *currentProcedureName_);
+
+            writeToOutputFile(RESULT_LABEL + std::to_string(jumpToCurrentProcedureIndex) + RESULT_LABEL);
+            procedure->commandsNode->accept(*this);
+            writeLineToOutputFile("RTRN " + std::to_string(symbolTable_.getProcedureReturnAddress(*currentProcedureName_)));
+
+            writeCommentLineToOutputFile("ENDPROCEDURE " + *currentProcedureName_);
+        }
+
+        currentProcedureName_ = std::nullopt;
+
+        writeToOutputFile(RESULT_LABEL + std::to_string(jumpOverAllProceduresIndex) + RESULT_LABEL);
+    }
 }
 
 void AssemblerGeneratorVisitor::visitReadNode(const ReadNode& readNode) {
     readNode.getIdentifierNode()->accept(*this);
     if (isCurrentIdentifierAddressPointer_) {
-        writeLineToOutputFile("STORE 3");
-        writeLineToOutputFile("GET 0");
-        writeLineToOutputFile("STOREI 3");
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 3");
+            writeLineToOutputFile("GET 0");
+            writeLineToOutputFile("STOREI 3");
+        } else {
+            writeLineToOutputFile("GET 0");
+            writeLineToOutputFile("STOREI " + std::to_string(currentIdentifierAddress_));
+        }
     } else {
         writeLineToOutputFile("GET " + std::to_string(currentIdentifierAddress_));
     }
@@ -357,7 +456,7 @@ void AssemblerGeneratorVisitor::visitWriteNode(const WriteNode& writeNode) {
         writeLineToOutputFile("PUT 0");
     } else {
         if (isCurrentIdentifierAddressPointer_) {
-            writeLineToOutputFile("LOADI 0");
+            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
             writeLineToOutputFile("PUT 0");
         } else {
             writeLineToOutputFile("PUT " + std::to_string(currentIdentifierAddress_));
@@ -375,8 +474,11 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     long long firstAddress = currentIdentifierAddress_;
     if (!firstValue && isCurrentIdentifierAddressPointer_) {
         isFirstAddressPointer = true;
-        writeLineToOutputFile("STORE 3");
-        firstAddress = 3;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 2");
+            firstAddress = 2;
+        }
     }
 
     valueNode2->accept(*this);
@@ -384,8 +486,11 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     long long secondAddress = currentIdentifierAddress_;
     if (!secondValue && isCurrentIdentifierAddressPointer_) {
         isSecondAddressPointer = true;
-        writeLineToOutputFile("STORE 2");
-        secondAddress = 2;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 1");
+            secondAddress = 1;
+        }
     }
 
     if (firstValue && secondValue) {
@@ -434,12 +539,63 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     }
 }
 
+void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
+    bool isFirstAddressPointer = false;
+    bool isSecondAddressPointer = false;
+
+    valueNode1->accept(*this);
+    const std::optional<long long> firstValue = currentValue_;
+    long long firstAddress = currentIdentifierAddress_;
+    if (!firstValue && isCurrentIdentifierAddressPointer_) {
+        isFirstAddressPointer = true;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 2");
+            firstAddress = 2;
+        }
+    }
+
+    valueNode2->accept(*this);
+    std::optional<long long> secondValue = currentValue_;
+    long long secondAddress = currentIdentifierAddress_;
+    if (!secondValue && isCurrentIdentifierAddressPointer_) {
+        isSecondAddressPointer = true;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 1");
+            secondAddress = 1;
+        }
+    }
+
+    if (secondValue && *secondValue == 2) {
+        if (firstValue) {
+            writeLineToOutputFile("SET " + std::to_string(*firstValue));
+            writeLineToOutputFile("STORE 1");
+            writeLineToOutputFile("HALF");
+        } else {
+            const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
+            writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
+            writeLineToOutputFile("HALF");
+        }
+    }
+}
+
+std::string AssemblerGeneratorVisitor::getVariableNameOrIteratorName(const std::string& variableName) {
+    const auto it = iteratorProgramNameToIteratorInternalName_.find(variableName);
+    if (it != iteratorProgramNameToIteratorInternalName_.end()) {
+        return it->second;
+    }
+
+    return variableName;
+}
+
 void AssemblerGeneratorVisitor::writeToOutputFile(const std::string& text) {
     outputAssemblerCode_ += text;
 }
 
 void AssemblerGeneratorVisitor::writeLineToOutputFile(const std::string& text) {
     outputAssemblerCode_ += text + '\n';
+    currentLineNumber_++;
 }
 
 void AssemblerGeneratorVisitor::writeCommentLineToOutputFile(const std::string& text) {
@@ -455,6 +611,11 @@ std::string resolveResultLabels(const std::string& code, std::unordered_map<int,
     int lineNumber = 0;
 
     while (std::getline(codeStream, line)) {
+        if (!line.empty() && line[0] == '#') {
+            codeWithoutResultLabels += line + '\n';
+            continue;
+        }
+
         size_t resultLabelPosition = 0;
         while ((resultLabelPosition = line.find(RESULT_LABEL)) != std::string::npos) {
             size_t endResultLabelPosition = line.find(RESULT_LABEL, resultLabelPosition + 2);
@@ -479,6 +640,11 @@ std::string resolveFillLabels(const std::string& code, const std::unordered_map<
     int lineNumber = 0;
 
     while (std::getline(codeStream, line)) {
+        if (!line.empty() && line[0] == '#') {
+            codeWithFilledLabels += line + '\n';
+            continue;
+        }
+
         size_t fillLabelPosition = 0;
         while ((fillLabelPosition = line.find(FILL_LABEL)) != std::string::npos) {
             size_t endFillLabelPosition = line.find(FILL_LABEL, fillLabelPosition + 2);
