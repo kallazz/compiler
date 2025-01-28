@@ -75,6 +75,8 @@ private:
     void writeCommentLineToOutputFile(const std::string& text);
     void resolveLabels();
     void generateMultiplicationProcedure();
+    void generateDivisionProcedure();
+    void generateModuloProcedure();
 
     const SymbolTable& symbolTable_;
     const bool shouldWriteComments_;

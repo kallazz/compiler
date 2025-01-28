@@ -12,6 +12,9 @@ public:
 
     void setProceduresNode(ProceduresNode* proceduresNode);
     void setMainNode(MainNode* mainNode);
+    void setIsMultiplicationProcedureNeeded(const bool value);
+    void setIsDivisionProcedureNeeded(const bool value);
+    void setIsModuloProcedureNeeded(const bool value);
     void printNodes() const;
     bool fillSymbolTable();
     std::string generateAssembler() const;
@@ -22,6 +25,9 @@ private:
     std::unique_ptr<MainNode> mainNode_;
     SymbolTable symbolTable_;
     CompilationError compilationError_;
+    bool isMultiplicationProcedureNeeded_;
+    bool isDivisionProcedureNeeded_;
+    bool isModuloProcedureNeeded_;
 };
 
 #endif // ABSTRACT_SYNTAX_TREE

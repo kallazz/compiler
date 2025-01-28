@@ -21,12 +21,22 @@ def _run_assembler_generator_test(input_code: str, expected_output_numbers: list
         [os.path.join(MAKEFILE_PATH, "vm"), OUTPUT_FILENAME], capture_output=True, text=True, input=user_input
     )
 
+    big_numbers_vm_result = subprocess.run(
+        [os.path.join(MAKEFILE_PATH, "vm-cln"), OUTPUT_FILENAME], capture_output=True, text=True, input=user_input
+    )
+
     assert vm_result.returncode == 0
 
-    output_numbers = re.findall(r">\s*(-?\d+)", vm_result.stdout, re.MULTILINE)
-    output_numbers = list(map(int, output_numbers))
+    assert big_numbers_vm_result.returncode == 0
 
-    assert expected_output_numbers == output_numbers
+    vm_output_numbers = re.findall(r">\s*(-?\d+)", vm_result.stdout, re.MULTILINE)
+    vm_output_numbers = list(map(int, vm_output_numbers))
+
+    big_numbers_vm_output_numbers = re.findall(r">\s*(-?\d+)", vm_result.stdout, re.MULTILINE)
+    big_numbers_vm_output_numbers = list(map(int, big_numbers_vm_output_numbers))
+
+    assert expected_output_numbers == vm_output_numbers
+    assert expected_output_numbers == big_numbers_vm_output_numbers
 
 
 @pytest.mark.parametrize(
@@ -84,6 +94,9 @@ def test_assignment(input_code, expected_output_numbers):
         ("PROGRAM IS x, y BEGIN y := 17; x := 15 - y; WRITE x; END", [-2]),
         ("PROGRAM IS x, y[5:10], n BEGIN n := 5; y[n] := 17; x := 15 + y[n]; WRITE x; END", [32]),
         ("PROGRAM IS z[-7:7], x[-5:10], y[5:10], n BEGIN n := 5; y[n] := 17; x[n] := 15; z[n] := x[n] + y[n]; WRITE z[n]; END", [32]),
+        ("PROGRAM IS x BEGIN x := 24 * 11; WRITE x; END", [264]),
+        ("PROGRAM IS x BEGIN x := 16 * 8; WRITE x; END", [128]),
+        ("PROGRAM IS x BEGIN x := 7 * 5; WRITE x; END", [35]),
         ("PROGRAM IS x BEGIN x := 5 * 7; WRITE x; END", [35]),
         ("PROGRAM IS x BEGIN x := -5 * 7; WRITE x; END", [-35]),
         ("PROGRAM IS x BEGIN x := -5 * -7; WRITE x; END", [35]),
@@ -92,6 +105,27 @@ def test_assignment(input_code, expected_output_numbers):
         ("PROGRAM IS x, y[-10:-3], z[7:15] BEGIN y[-5] := 5; z[12] := 7; x := y[-5] * z[12]; WRITE x; END", [35]),
         ("PROGRAM IS x, y[-10:-3], n, m, z[7:15] BEGIN n := -5; m := 12; y[-5] := 5; z[12] := 7; x := y[n] * z[m]; WRITE x; END", [35]),
         ("PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 5; z[12] := 7; x[l] := y[n] * z[m]; WRITE x[3]; END", [35]),
+        ("PROGRAM IS x BEGIN x := 12 / 2; WRITE x; END", [6]),
+        ("PROGRAM IS x BEGIN x := 17 / 2; WRITE x; END", [8]),
+        ("PROGRAM IS x BEGIN x := 24 / 11; WRITE x; END", [2]),
+        ("PROGRAM IS x BEGIN x := 16 / 8; WRITE x; END", [2]),
+        ("PROGRAM IS x BEGIN x := 50 / 10; WRITE x; END", [5]),
+        ("PROGRAM IS x BEGIN x := 50 / -10; WRITE x; END", [-5]),
+        ("PROGRAM IS x BEGIN x := -50 / 10; WRITE x; END", [-5]),
+        ("PROGRAM IS x BEGIN x := -50 / -10; WRITE x; END", [5]),
+        ("PROGRAM IS x BEGIN x := -3 / 2; WRITE x; END", [-2]),
+        ("PROGRAM IS x, y, z BEGIN y := 35; z := 5; x := y / z; WRITE x; END", [7]),
+        ("PROGRAM IS x, y[-10:-3], z[7:15] BEGIN y[-5] := 35; z[12] := 5; x := y[-5] / z[12]; WRITE x; END", [7]),
+        ("PROGRAM IS x, y[-10:-3], n, m, z[7:15] BEGIN n := -5; m := 12; y[-5] := 35; z[12] := 5; x := y[n] / z[m]; WRITE x; END", [7]),
+        ("PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 35; z[12] := 5; x[l] := y[n] / z[m]; WRITE x[3]; END", [7]),
+        ("PROGRAM IS x BEGIN x := 12 % 2; WRITE x; END", [0]),
+        ("PROGRAM IS x BEGIN x := 13 % 2; WRITE x; END", [1]),
+        ("PROGRAM IS x BEGIN x := 127 % 12; WRITE x; END", [7]),
+        ("PROGRAM IS x BEGIN x := 10 % 3; WRITE x; END", [1]),
+        ("PROGRAM IS x BEGIN x := 10 % -3; WRITE x; END", [-2]),
+        ("PROGRAM IS x BEGIN x := -10 % 3; WRITE x; END", [2]),
+        ("PROGRAM IS x BEGIN x := -10 % -3; WRITE x; END", [-1]),
+        ("PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 35; z[12] := 6; x[l] := y[n] % z[m]; WRITE x[3]; END", [5]),
     ],
 )
 def test_assignment_with_expression(input_code, expected_output_numbers):

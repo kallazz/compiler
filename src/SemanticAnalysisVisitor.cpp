@@ -19,7 +19,12 @@
 #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
 
-SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable) : symbolTable_(symbolTable), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {}
+SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded) : symbolTable_(symbolTable), isAnyMathematicalProcedureNeeded_(isAnyMathematicalProcedureNeeded), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {
+    if (isAnyMathematicalProcedureNeeded) {
+        symbolTable_.declareGlobalConstant(0);
+        symbolTable_.declareGlobalConstant(1);
+    }
+}
 
 bool SemanticAnalysisVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     if (!conditionNode.getValueNode1()->accept(*this)) {

@@ -228,9 +228,9 @@ expression:
     value { $$ = new ExpressionNode(@1.first_line, $1); }
     | value ADD value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::ADD); }
     | value SUB value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::SUBTRACT); }
-    | value MUL value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MULTIPLY); }
-    | value DIV value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::DIVIDE); }
-    | value MOD value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MODULO); }
+    | value MUL value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MULTIPLY); tree.setIsMultiplicationProcedureNeeded(true); }
+    | value DIV value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::DIVIDE); tree.setIsDivisionProcedureNeeded(true); }
+    | value MOD value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MODULO); tree.setIsModuloProcedureNeeded(true); }
 ;
 
 condition:

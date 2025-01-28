@@ -3,7 +3,7 @@
 #include "SemanticAnalysisVisitor.hpp"
 #include <iostream>
 
-AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr), symbolTable_() {}
+AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr), symbolTable_(), isMultiplicationProcedureNeeded_(false), isDivisionProcedureNeeded_(false), isModuloProcedureNeeded_(false) {}
 
 void AbstractSyntaxTree::setProceduresNode(ProceduresNode* proceduresNode) {
     proceduresNode_ = std::unique_ptr<ProceduresNode>(proceduresNode);
@@ -11,6 +11,18 @@ void AbstractSyntaxTree::setProceduresNode(ProceduresNode* proceduresNode) {
 
 void AbstractSyntaxTree::setMainNode(MainNode* mainNode) {
     mainNode_ = std::unique_ptr<MainNode>(mainNode);
+}
+
+void AbstractSyntaxTree::setIsMultiplicationProcedureNeeded(const bool value) {
+    isMultiplicationProcedureNeeded_ = value;
+}
+
+void AbstractSyntaxTree::setIsDivisionProcedureNeeded(const bool value) {
+    isDivisionProcedureNeeded_ = value;
+}
+
+void AbstractSyntaxTree::setIsModuloProcedureNeeded(const bool value) {
+    isModuloProcedureNeeded_ = value;
 }
 
 void AbstractSyntaxTree::printNodes() const {
@@ -26,7 +38,9 @@ void AbstractSyntaxTree::printNodes() const {
 }
 
 bool AbstractSyntaxTree::fillSymbolTable() {
-    SemanticAnalysisVisitor semanticAnalysisVisitor(symbolTable_);
+    const bool isAnyMathematicalProcedureNeeded = (isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ || isModuloProcedureNeeded_);
+
+    SemanticAnalysisVisitor semanticAnalysisVisitor(symbolTable_, isAnyMathematicalProcedureNeeded);
 
     if (proceduresNode_ && !proceduresNode_->accept(semanticAnalysisVisitor)) {
         compilationError_ = symbolTable_.getCompilationError();

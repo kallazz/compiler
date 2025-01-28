@@ -28,7 +28,7 @@ class WriteNode;
 
 class SemanticAnalysisVisitor {
 public:
-    SemanticAnalysisVisitor(SymbolTable& symbolTable);
+    SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded);
 
     bool visitConditionNode(const ConditionNode& conditionNode);
     bool visitExpressionNode(const ExpressionNode& expressionNode);
@@ -55,6 +55,7 @@ private:
     bool isProcedureBeingProcessed();
 
     SymbolTable& symbolTable_;
+    bool isAnyMathematicalProcedureNeeded_;
     std::optional<std::string> currentProcedureName_;
     int forLoopsCounter_;
     bool willNumberVariableBeModified_;
