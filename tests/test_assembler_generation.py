@@ -84,6 +84,14 @@ def test_assignment(input_code, expected_output_numbers):
         ("PROGRAM IS x, y BEGIN y := 17; x := 15 - y; WRITE x; END", [-2]),
         ("PROGRAM IS x, y[5:10], n BEGIN n := 5; y[n] := 17; x := 15 + y[n]; WRITE x; END", [32]),
         ("PROGRAM IS z[-7:7], x[-5:10], y[5:10], n BEGIN n := 5; y[n] := 17; x[n] := 15; z[n] := x[n] + y[n]; WRITE z[n]; END", [32]),
+        ("PROGRAM IS x BEGIN x := 5 * 7; WRITE x; END", [35]),
+        ("PROGRAM IS x BEGIN x := -5 * 7; WRITE x; END", [-35]),
+        ("PROGRAM IS x BEGIN x := -5 * -7; WRITE x; END", [35]),
+        ("PROGRAM IS x BEGIN x := 5 * -7; WRITE x; END", [-35]),
+        ("PROGRAM IS x, y, z BEGIN y := 5; z := 7; x := y * z; WRITE x; END", [35]),
+        ("PROGRAM IS x, y[-10:-3], z[7:15] BEGIN y[-5] := 5; z[12] := 7; x := y[-5] * z[12]; WRITE x; END", [35]),
+        ("PROGRAM IS x, y[-10:-3], n, m, z[7:15] BEGIN n := -5; m := 12; y[-5] := 5; z[12] := 7; x := y[n] * z[m]; WRITE x; END", [35]),
+        ("PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 5; z[12] := 7; x[l] := y[n] * z[m]; WRITE x[3]; END", [35]),
     ],
 )
 def test_assignment_with_expression(input_code, expected_output_numbers):

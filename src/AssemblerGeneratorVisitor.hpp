@@ -66,11 +66,14 @@ public:
 private:
     void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator);
     void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
+    void multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
+    void modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     std::string getVariableNameOrIteratorName(const std::string& variableName);
     void writeToOutputFile(const std::string& text);
     void writeLineToOutputFile(const std::string& text);
     void writeCommentLineToOutputFile(const std::string& text);
     void resolveLabels();
+    void generateMultiplicationProcedure();
 
     const SymbolTable& symbolTable_;
     const bool shouldWriteComments_;
