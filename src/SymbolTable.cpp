@@ -4,6 +4,15 @@ constexpr long long FIRST_AVAILABLE_ADDRESS = 13;
 
 SymbolTable::SymbolTable() : currentAvailableAddress_(FIRST_AVAILABLE_ADDRESS), shouldReturnErrorInstantly_(false) {}
 
+void SymbolTable::declareGlobalConstant(const long long value) {
+    const std::string constantName = "!" + std::to_string(value);
+
+    if ((globalConstantTable_.find(constantName) == globalConstantTable_.end())) {
+        globalConstantTable_.insert({constantName, {currentAvailableAddress_, value}});
+        currentAvailableAddress_++;
+    }
+}
+
 bool SymbolTable::declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator, const bool isInitialized) {
     return declareNumberVariable(lineNumber, name, mainVariableTable_, std::nullopt, isIterator, isInitialized);
 }
@@ -325,6 +334,16 @@ std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& arg
     return std::nullopt;
 }
 
+bool SymbolTable::checkIfGlobalConstantExists(const long long value) const {
+    const std::string constantName = "!" + std::to_string(value);
+    return globalConstantTable_.find(constantName) != globalConstantTable_.end();
+}
+
+long long SymbolTable::getGlobalConstantAddress(const long long value) const {
+    const std::string constantName = "!" + std::to_string(value);
+    return globalConstantTable_.at(constantName).address;
+}
+
 long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
     return mainVariableTable_.at(name).address;
 }
@@ -356,6 +375,15 @@ std::vector<long long> SymbolTable::getProcedureArgumentsAddresses(const std::st
 
 long long SymbolTable::getProcedureReturnAddress(const std::string& procedureName) const {
     return procedureTable_.at(procedureName).returnAddress;
+}
+
+std::vector<ConstantInfo> SymbolTable::getGlobalConstantInfos() const {
+    std::vector<ConstantInfo> constantInfos;
+    for (const auto& [_, constantInfo] : globalConstantTable_) {
+        constantInfos.push_back(constantInfo);
+    }
+
+    return constantInfos;
 }
 
 CompilationError SymbolTable::getCompilationError() const {

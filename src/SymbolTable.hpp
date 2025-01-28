@@ -17,6 +17,11 @@ struct VariableInfo {
     bool isInitialized = false;
 };
 
+struct ConstantInfo {
+    const long long address;
+    const long long value;
+};
+
 struct ArgumentInfo {
     const std::string name;
     const ArgumentType type;
@@ -32,6 +37,8 @@ struct ProcedureInfo {
 class SymbolTable {
 public:
     SymbolTable();
+
+    void declareGlobalConstant(const long long value);
 
     bool declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator=false, const bool isInitialized=false);
     bool declareArrayVariableInMain(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound);
@@ -49,11 +56,15 @@ public:
     void renameVariableInMain(const std::string& name, const std::string& newName);
     void renameVariableInProcedure(const std::string& name, const std::string& newName, const std::string& procedureName);
 
+    long long getGlobalConstantAddress(const long long value) const;
     long long getVariableAddressInMain(const std::string& name) const;
     std::pair<long long, bool> getVariableAddressInProcedure(const std::string& name, const std::string& procedureName) const;
     std::vector<long long> getProcedureArgumentsAddresses(const std::string& procedureName) const;
     long long getProcedureReturnAddress(const std::string& procedureName) const;
 
+    bool checkIfGlobalConstantExists(const long long value) const;
+
+    std::vector<ConstantInfo> getGlobalConstantInfos() const;
     CompilationError getCompilationError() const;
 
 private:
@@ -68,6 +79,7 @@ private:
 
     std::unordered_map<std::string, VariableInfo> mainVariableTable_;
     std::unordered_map<std::string, ProcedureInfo> procedureTable_;
+    std::unordered_map<std::string, ConstantInfo> globalConstantTable_;
     long long currentAvailableAddress_;
     CompilationError compilationError_;
     bool shouldReturnErrorInstantly_;

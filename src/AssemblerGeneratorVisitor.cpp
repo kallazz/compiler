@@ -47,7 +47,7 @@ Registers' purpose:
 
 
 AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable)
-    : symbolTable_(symbolTable), shouldWriteComments_(false), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentValue_(std::nullopt), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentProcedureName_(std::nullopt), currentLineNumber_(0) {}
+    : symbolTable_(symbolTable), shouldWriteComments_(false), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentProcedureName_(std::nullopt), currentLineNumber_(0) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
@@ -82,14 +82,11 @@ void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditio
 void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expressionNode) {
     if (!expressionNode.getValueNode2()) {
         expressionNode.getValueNode1()->accept(*this);
-        if (currentValue_) {
-            writeLineToOutputFile("SET " + std::to_string(*currentValue_));
+
+        if (isCurrentIdentifierAddressPointer_ && !isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
         } else {
-            if (isCurrentIdentifierAddressPointer_ && !isCurrentIdentifierAddressCalculatedPointerForArray_) {
-                writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-            } else {
-                writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
-            }
+            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
         }
 
         return;
@@ -169,9 +166,12 @@ void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identi
 }
 
 void AssemblerGeneratorVisitor::visitValueNode(const ValueNode& valueNode) {
-    currentValue_ = valueNode.getNumber();
     if (valueNode.getIdentifierNode()) {
         valueNode.getIdentifierNode()->accept(*this);
+    } else {
+        currentIdentifierAddress_ = symbolTable_.getGlobalConstantAddress(*valueNode.getNumber());
+        isCurrentIdentifierAddressPointer_ = false;
+        isCurrentIdentifierAddressCalculatedPointerForArray_ = false;
     }
 }
 
@@ -184,7 +184,6 @@ void AssemblerGeneratorVisitor::visitArgumentsNode(const ArgumentsNode& argument
 }
 
 void AssemblerGeneratorVisitor::visitAssignmentNode(const AssignmentNode& assignmentNode) {
-    // TODO: Add procedure logic
     std::string storeCommand = "STORE";
 
     assignmentNode.getIdentifierNode()->accept(*this);
@@ -333,6 +332,8 @@ void AssemblerGeneratorVisitor::visitMainNode(const MainNode& mainNode) {
     writeLineToOutputFile("SET 1");
     writeLineToOutputFile("STORE 9");
 
+    setGlobalConstantValues();
+
     mainNode.getCommandsNode()->accept(*this);
     resolveLabels();
     writeLineToOutputFile("HALT");
@@ -473,16 +474,20 @@ void AssemblerGeneratorVisitor::visitWhileLoopNode(const WhileLoopNode& whileLoo
 
 void AssemblerGeneratorVisitor::visitWriteNode(const WriteNode& writeNode) {
     writeNode.getValueNode()->accept(*this);
-    if (currentValue_) {
-        writeLineToOutputFile("SET " + std::to_string(*currentValue_));
+
+    if (isCurrentIdentifierAddressPointer_) {
+        writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
         writeLineToOutputFile("PUT 0");
     } else {
-        if (isCurrentIdentifierAddressPointer_) {
-            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-            writeLineToOutputFile("PUT 0");
-        } else {
-            writeLineToOutputFile("PUT " + std::to_string(currentIdentifierAddress_));
-        }
+        writeLineToOutputFile("PUT " + std::to_string(currentIdentifierAddress_));
+    }
+}
+
+void AssemblerGeneratorVisitor::setGlobalConstantValues() {
+    const auto constantInfos =  symbolTable_.getGlobalConstantInfos();
+    for (const auto [address, value] : constantInfos) {
+        writeLineToOutputFile("SET " + std::to_string(value));
+        writeLineToOutputFile("STORE " + std::to_string(address));
     }
 }
 
@@ -492,9 +497,9 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     bool isSecondAddressPointer = false;
 
     valueNode1->accept(*this);
-    const std::optional<long long> firstValue = currentValue_;
     long long firstAddress = currentIdentifierAddress_;
-    if (!firstValue && isCurrentIdentifierAddressPointer_) {
+
+    if (isCurrentIdentifierAddressPointer_) {
         isFirstAddressPointer = true;
 
         if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
@@ -504,9 +509,9 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     }
 
     valueNode2->accept(*this);
-    std::optional<long long> secondValue = currentValue_;
     long long secondAddress = currentIdentifierAddress_;
-    if (!secondValue && isCurrentIdentifierAddressPointer_) {
+
+    if (isCurrentIdentifierAddressPointer_) {
         isSecondAddressPointer = true;
 
         if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
@@ -515,92 +520,17 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
         }
     }
 
-    if (firstValue && secondValue) {
-        writeLineToOutputFile("SET " + std::to_string(*firstValue));
-        writeLineToOutputFile("STORE 1");
+    const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
+    writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
 
-        if (isSubtraction) {
-            secondValue = *secondValue * (-1);
-        }
-
-        writeLineToOutputFile("SET " + std::to_string(*secondValue));
-        writeLineToOutputFile("ADD 1");
-    } else if (!firstValue && !secondValue) {
-        const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
-        writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
-
-        std::string mathematicalOperator = isSubtraction ? "SUB" : "ADD";
-        if (isSecondAddressPointer) {
-            mathematicalOperator += "I";
-        }
-
-        writeLineToOutputFile(mathematicalOperator + " " + std::to_string(secondAddress));
-    } else {
-        if (firstValue) {
-            const long long value = *firstValue;
-            const long long address = secondAddress;
-
-            writeLineToOutputFile("SET " + std::to_string(value));
-
-            std::string mathematicalOperator = isSubtraction ? "SUB" : "ADD";
-            if (isSecondAddressPointer) {
-                mathematicalOperator += "I";
-            }
-
-            writeLineToOutputFile(mathematicalOperator + " " + std::to_string(address));
-        } else {
-            const long long value = isSubtraction ? (*secondValue * (-1)) : *secondValue;
-            const long long address = firstAddress;
-
-            writeLineToOutputFile("SET " + std::to_string(value));
-
-            const std::string mathematicalOperator = isFirstAddressPointer ? "ADDI" : "ADD";
-
-            writeLineToOutputFile(mathematicalOperator + " " + std::to_string(address));
-        }
+    std::string mathematicalCommand = isSubtraction ? "SUB" : "ADD";
+    if (isSecondAddressPointer) {
+        mathematicalCommand += "I";
     }
+
+    writeLineToOutputFile(mathematicalCommand + " " + std::to_string(secondAddress));
 }
 
-void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
-    bool isFirstAddressPointer = false;
-    bool isSecondAddressPointer = false;
-
-    valueNode1->accept(*this);
-    const std::optional<long long> firstValue = currentValue_;
-    long long firstAddress = currentIdentifierAddress_;
-    if (!firstValue && isCurrentIdentifierAddressPointer_) {
-        isFirstAddressPointer = true;
-
-        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
-            writeLineToOutputFile("STORE 2");
-            firstAddress = 2;
-        }
-    }
-
-    valueNode2->accept(*this);
-    std::optional<long long> secondValue = currentValue_;
-    long long secondAddress = currentIdentifierAddress_;
-    if (!secondValue && isCurrentIdentifierAddressPointer_) {
-        isSecondAddressPointer = true;
-
-        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
-            writeLineToOutputFile("STORE 1");
-            secondAddress = 1;
-        }
-    }
-
-    if (secondValue && *secondValue == 2) {
-        if (firstValue) {
-            writeLineToOutputFile("SET " + std::to_string(*firstValue));
-            writeLineToOutputFile("STORE 1");
-            writeLineToOutputFile("HALF");
-        } else {
-            const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
-            writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
-            writeLineToOutputFile("HALF");
-        }
-    }
-}
 
 void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
     bool isFirstAddressPointer = false;
@@ -608,33 +538,60 @@ void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& value
 
     valueNode1->accept(*this);
 
-    if (currentValue_) {
-        writeLineToOutputFile("SET " + std::to_string(*currentValue_));
+    if (!isCurrentIdentifierAddressPointer_) {
+        writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
     } else {
-        if (!isCurrentIdentifierAddressPointer_) {
-            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
-        } else {
-            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-        }
+        writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
     }
     writeLineToOutputFile("STORE 1");
 
     valueNode2->accept(*this);
 
-    if (currentValue_) {
-        writeLineToOutputFile("SET " + std::to_string(*currentValue_));
+    if (!isCurrentIdentifierAddressPointer_) {
+        writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
     } else {
-        if (!isCurrentIdentifierAddressPointer_) {
-            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
-        } else {
-            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-        }
+        writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
     }
     writeLineToOutputFile("STORE 2");
 
     writeLineToOutputFile("SET " + std::to_string(currentLineNumber_ + 3));
     writeLineToOutputFile("STORE " + std::to_string(MULTIPLICATION_PROCEDURE_RETURN_ADDRESS ));
     writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MULTIPLICATION_PROCEDURE_NAME)) + FILL_LABEL);    
+}
+
+void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
+    bool isFirstAddressPointer = false;
+    bool isSecondAddressPointer = false;
+
+    valueNode1->accept(*this);
+    long long firstAddress = currentIdentifierAddress_;
+
+    if (isCurrentIdentifierAddressPointer_) {
+        isFirstAddressPointer = true;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 2");
+            firstAddress = 2;
+        }
+    }
+
+    valueNode2->accept(*this);
+    long long secondAddress = currentIdentifierAddress_;
+
+    if (isCurrentIdentifierAddressPointer_) {
+        isSecondAddressPointer = true;
+
+        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
+            writeLineToOutputFile("STORE 1");
+            secondAddress = 1;
+        }
+    }
+
+    if (symbolTable_.checkIfGlobalConstantExists(2) && symbolTable_.getGlobalConstantAddress(2) == secondAddress) {
+        const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
+        writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
+        writeLineToOutputFile("HALF");
+    }
 }
 
 std::string AssemblerGeneratorVisitor::getVariableNameOrIteratorName(const std::string& variableName) {

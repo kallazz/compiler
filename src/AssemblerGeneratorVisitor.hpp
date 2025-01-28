@@ -64,9 +64,10 @@ public:
     std::string getGeneratedAssemblerCode() const;
 
 private:
+    void setGlobalConstantValues();
     void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator);
-    void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     void multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
+    void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     void modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     std::string getVariableNameOrIteratorName(const std::string& variableName);
     void writeToOutputFile(const std::string& text);
@@ -82,7 +83,6 @@ private:
     long long currentIdentifierAddress_;
     bool isCurrentIdentifierAddressPointer_;
     bool isCurrentIdentifierAddressCalculatedPointerForArray_;
-    std::optional<long long> currentValue_;
     std::string currentJumpType_;
     bool isCurrentJumpForTrueCondition_;
     int unresolvedJumpsCounter_;

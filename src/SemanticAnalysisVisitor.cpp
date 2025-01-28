@@ -68,6 +68,7 @@ bool SemanticAnalysisVisitor::visitIdentifierNode(const IdentifierNode& identifi
 
 bool SemanticAnalysisVisitor::visitValueNode(const ValueNode& valueNode) {
     if (valueNode.getNumber()) {
+        symbolTable_.declareGlobalConstant(*valueNode.getNumber());
         return true;
     }
 
@@ -174,6 +175,8 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
     } else {
         symbolTable_.renameVariableInMain(iteratorName, newIteratorName);
     }
+
+    symbolTable_.declareGlobalConstant(1);
 
     return true;
 }
