@@ -45,8 +45,8 @@ Registers' purpose:
 */
 
 
-AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable)
-    : symbolTable_(symbolTable), shouldWriteComments_(false), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentProcedureName_(std::nullopt), currentLineNumber_(0) {}
+AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable, const bool isMultiplicationProcedureNeeded, const bool isDivisionProcedureNeeded, const bool isModuloProcedureNeeded)
+    : symbolTable_(symbolTable), isMultiplicationProcedureNeeded_(isMultiplicationProcedureNeeded), isDivisionProcedureNeeded_(isDivisionProcedureNeeded), isModuloProcedureNeeded_(isModuloProcedureNeeded), shouldWriteComments_(false), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentLineNumber_(0), currentProcedureName_(std::nullopt) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
@@ -82,7 +82,7 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
     if (!expressionNode.getValueNode2()) {
         expressionNode.getValueNode1()->accept(*this);
 
-        if (isCurrentIdentifierAddressPointer_ && !isCurrentIdentifierAddressCalculatedPointerForArray_) {
+        if (isCurrentIdentifierAddressPointer_) {
             writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
         } else {
             writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
@@ -103,7 +103,6 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
 }
 
 void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
-    // TODO: Add procedure logic
     const std::string variableName = getVariableNameOrIteratorName(identifierNode.getName());
 
     isCurrentIdentifierAddressPointer_  = false;
@@ -173,11 +172,11 @@ void AssemblerGeneratorVisitor::visitValueNode(const ValueNode& valueNode) {
     }
 }
 
-void AssemblerGeneratorVisitor::visitArgumentsDeclarationNode(const ArgumentsDeclarationNode& argumentsDeclarationNode) {
+void AssemblerGeneratorVisitor::visitArgumentsDeclarationNode(const ArgumentsDeclarationNode&) {
     return;
 }
 
-void AssemblerGeneratorVisitor::visitArgumentsNode(const ArgumentsNode& argumentsNode) {
+void AssemblerGeneratorVisitor::visitArgumentsNode(const ArgumentsNode&) {
     return;
 }
 
@@ -206,7 +205,7 @@ void AssemblerGeneratorVisitor::visitCommandsNode(const CommandsNode& commandsNo
     }
 }
 
-void AssemblerGeneratorVisitor::visitDeclarationsNode(const DeclarationsNode& declarationsNode) {
+void AssemblerGeneratorVisitor::visitDeclarationsNode(const DeclarationsNode&) {
     return;
 }
 
@@ -339,7 +338,7 @@ void AssemblerGeneratorVisitor::visitProcedureCallNode(const ProcedureCallNode& 
     const auto& callArguments = procedureCallNode.getArgumentsNode()->getArguments();
     const auto calledProcedureArgumentsAddresses = symbolTable_.getProcedureArgumentsAddresses(procedureName);
 
-    for (int i = 0; i < callArguments.size(); i++) {
+    for (size_t i = 0; i < callArguments.size(); i++) {
 
         const std::string callArgumentName = getVariableNameOrIteratorName(callArguments[i].name);
         long long callArgumentAddress;
@@ -366,19 +365,26 @@ void AssemblerGeneratorVisitor::visitProcedureCallNode(const ProcedureCallNode& 
     writeCommentLineToOutputFile("ENDCALL " + procedureCallNode.getName());
 }
 
-void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode& procedureHeadNode) {
+void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode&) {
     return;
 }
 
 void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proceduresNode) {
-    // if (!proceduresNode.getProcedures().empty()) {
+    if (!proceduresNode.getProcedures().empty() || isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ || isModuloProcedureNeeded_) {
         const int jumpOverAllProceduresIndex = unresolvedJumpsCounter_;
         unresolvedJumpsCounter_++;
 
         writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(jumpOverAllProceduresIndex) + FILL_LABEL);
 
-        generateMultiplicationProcedure();
-        generateDivisionProcedure();
+        if (isMultiplicationProcedureNeeded_) {
+            generateMultiplicationProcedure();
+        }
+        if (isDivisionProcedureNeeded_) {
+            generateDivisionProcedure();
+        }
+        if (isModuloProcedureNeeded_) {
+            generateModuloProcedure();
+        }
 
         for (const auto& procedure : proceduresNode.getProcedures()) {
             currentProcedureName_ = procedure->procedureHeadNode->getName();
@@ -399,7 +405,7 @@ void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proced
         currentProcedureName_ = std::nullopt;
 
         writeToOutputFile(RESULT_LABEL + std::to_string(jumpOverAllProceduresIndex) + RESULT_LABEL);
-    // }
+    }
 }
 
 void AssemblerGeneratorVisitor::visitReadNode(const ReadNode& readNode) {
@@ -527,9 +533,6 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
 
 
 void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
-    bool isFirstAddressPointer = false;
-    bool isSecondAddressPointer = false;
-
     valueNode1->accept(*this);
 
     if (!isCurrentIdentifierAddressPointer_) {
@@ -554,34 +557,30 @@ void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& value
 }
 
 void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
-    bool isFirstAddressPointer = false;
-    bool isSecondAddressPointer = false;
-
-    valueNode1->accept(*this);
-    const long long firstAddress = currentIdentifierAddress_;
-
-    if (!isCurrentIdentifierAddressPointer_) {
-        writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
-    } else {
-        writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-    }
-    writeLineToOutputFile("STORE 1");
-
     valueNode2->accept(*this);
-    const long long secondAddress = currentIdentifierAddress_;
 
-    if (!isCurrentIdentifierAddressPointer_) {
-        writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
-    } else {
-        writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
-    }
-    writeLineToOutputFile("STORE 2");
-
-    if (symbolTable_.checkIfGlobalConstantExists(2) && symbolTable_.getGlobalConstantAddress(2) == secondAddress) {
-        const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
-        writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
+    if (symbolTable_.checkIfGlobalConstantExists(2) && symbolTable_.getGlobalConstantAddress(2) == currentIdentifierAddress_) {
+        valueNode1->accept(*this);
+        const std::string loadCommand = isCurrentIdentifierAddressPointer_ ? "LOADI" : "LOAD";
+        writeLineToOutputFile(loadCommand + " " + std::to_string(currentIdentifierAddress_));
         writeLineToOutputFile("HALF");
     } else {
+        if (!isCurrentIdentifierAddressPointer_) {
+            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
+        } else {
+            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
+        }
+        writeLineToOutputFile("STORE 2");
+
+        valueNode1->accept(*this);
+
+        if (!isCurrentIdentifierAddressPointer_) {
+            writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
+        } else {
+            writeLineToOutputFile("LOADI " + std::to_string(currentIdentifierAddress_));
+        }
+        writeLineToOutputFile("STORE 1");
+
         writeLineToOutputFile("SET " + std::to_string(currentLineNumber_ + 3));
         writeLineToOutputFile("STORE " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
         writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(DIVISION_PROCEDURE_NAME)) + FILL_LABEL);    
@@ -590,11 +589,7 @@ void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNo
 }
 
 void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
-    bool isFirstAddressPointer = false;
-    bool isSecondAddressPointer = false;
-
     valueNode1->accept(*this);
-    const long long firstAddress = currentIdentifierAddress_;
 
     if (!isCurrentIdentifierAddressPointer_) {
         writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
@@ -604,7 +599,6 @@ void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNo
     writeLineToOutputFile("STORE 1");
 
     valueNode2->accept(*this);
-    const long long secondAddress = currentIdentifierAddress_;
 
     if (!isCurrentIdentifierAddressPointer_) {
         writeLineToOutputFile("LOAD " + std::to_string(currentIdentifierAddress_));
@@ -613,16 +607,10 @@ void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNo
     }
     writeLineToOutputFile("STORE 2");
 
-    // if (symbolTable_.checkIfGlobalConstantExists(2) && symbolTable_.getGlobalConstantAddress(2) == secondAddress) {
-    //     const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
-    //     writeLineToOutputFile(loadCommand + " " + std::to_string(firstAddress));
-    //     writeLineToOutputFile("HALF");
-    // } else {
-        writeLineToOutputFile("SET " + std::to_string(currentLineNumber_ + 3));
-        writeLineToOutputFile("STORE " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
-        writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(DIVISION_PROCEDURE_NAME)) + FILL_LABEL);    
-        writeLineToOutputFile("LOAD 1");
-    // }
+    writeLineToOutputFile("SET " + std::to_string(currentLineNumber_ + 3));
+    writeLineToOutputFile("STORE " + std::to_string(MODULO_PROCEDURE_RETURN_ADDRESS));
+    writeLineToOutputFile("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MODULO_PROCEDURE_NAME)) + FILL_LABEL);    
+    writeLineToOutputFile("LOAD 1");
 }
 
 std::string AssemblerGeneratorVisitor::getVariableNameOrIteratorName(const std::string& variableName) {
@@ -792,7 +780,7 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     writeLineToOutputFile("STORE 3");
     writeLineToOutputFile("LOAD 2");
     writeLineToOutputFile("SUB 13");
-    writeLineToOutputFile("JZERO 63");
+    writeLineToOutputFile("JZERO 68");
     writeLineToOutputFile("LOAD 1");
     writeLineToOutputFile("SUB 13");
     writeLineToOutputFile("JNEG 4");
@@ -851,12 +839,158 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     writeLineToOutputFile("LOAD 4");
     writeLineToOutputFile("SUB 14");
     writeLineToOutputFile("JZERO 2");
-    writeLineToOutputFile("JUMP 4");
+    writeLineToOutputFile("JUMP 9");
     writeLineToOutputFile("LOAD 13");
     writeLineToOutputFile("SUB 3");
     writeLineToOutputFile("STORE 3");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("JZERO 4");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("SUB 14");
+    writeLineToOutputFile("STORE 3");
     writeLineToOutputFile("RTRN " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
 }
+
+void AssemblerGeneratorVisitor::generateModuloProcedure() {
+    const int jumpToCurrentProcedureIndex = unresolvedJumpsCounter_;
+    unresolvedJumpsCounter_++;
+    procedureNameToJumpIndex.insert({MODULO_PROCEDURE_NAME, jumpToCurrentProcedureIndex});
+
+    writeToOutputFile(RESULT_LABEL + std::to_string(jumpToCurrentProcedureIndex) + RESULT_LABEL);
+
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JZERO 65");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JNEG 4");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("STORE 6");
+    writeLineToOutputFile("JUMP 6");
+    writeLineToOutputFile("LOAD 14");
+    writeLineToOutputFile("STORE 6");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("SUB 1");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JNEG 4");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("STORE 7");
+    writeLineToOutputFile("JUMP 6");
+    writeLineToOutputFile("LOAD 14");
+    writeLineToOutputFile("STORE 7");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("SUB 2");
+    writeLineToOutputFile("STORE 2");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("STORE 5");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 2");
+    writeLineToOutputFile("JNEG 20");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("STORE 3");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 4");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 4");
+    writeLineToOutputFile("JNEG 8");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 3");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 4");
+    writeLineToOutputFile("JUMP -9");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 3");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("JUMP -21");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JZERO 15");
+    writeLineToOutputFile("LOAD 6");
+    writeLineToOutputFile("SUB 14");
+    writeLineToOutputFile("JZERO 2");
+    writeLineToOutputFile("JUMP 4");
+    writeLineToOutputFile("LOAD 5");
+    writeLineToOutputFile("SUB 1");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("LOAD 7");
+    writeLineToOutputFile("SUB 14");
+    writeLineToOutputFile("JZERO 2");
+    writeLineToOutputFile("JUMP 4");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 5");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("JUMP 64");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JNEG 4");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("STORE 6");
+    writeLineToOutputFile("JUMP 6");
+    writeLineToOutputFile("LOAD 14");
+    writeLineToOutputFile("STORE 6");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("SUB 1");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JNEG 4");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("STORE 7");
+    writeLineToOutputFile("JUMP 6");
+    writeLineToOutputFile("LOAD 14");
+    writeLineToOutputFile("STORE 7");
+    writeLineToOutputFile("LOAD 13");
+    writeLineToOutputFile("SUB 2");
+    writeLineToOutputFile("STORE 2");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("STORE 5");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 2");
+    writeLineToOutputFile("JNEG 20");
+    writeLineToOutputFile("LOAD 2");
+    writeLineToOutputFile("STORE 3");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 4");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 4");
+    writeLineToOutputFile("JNEG 8");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 3");
+    writeLineToOutputFile("LOAD 3");
+    writeLineToOutputFile("ADD 3");
+    writeLineToOutputFile("STORE 4");
+    writeLineToOutputFile("JUMP -9");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 3");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("JUMP -21");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 13");
+    writeLineToOutputFile("JZERO 15");
+    writeLineToOutputFile("LOAD 6");
+    writeLineToOutputFile("SUB 14");
+    writeLineToOutputFile("JZERO 2");
+    writeLineToOutputFile("JUMP 4");
+    writeLineToOutputFile("LOAD 5");
+    writeLineToOutputFile("SUB 1");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("LOAD 7");
+    writeLineToOutputFile("SUB 14");
+    writeLineToOutputFile("JZERO 2");
+    writeLineToOutputFile("JUMP 4");
+    writeLineToOutputFile("LOAD 1");
+    writeLineToOutputFile("SUB 5");
+    writeLineToOutputFile("STORE 1");
+    writeLineToOutputFile("RTRN " + std::to_string(MODULO_PROCEDURE_RETURN_ADDRESS));
+}
+
 
 std::string AssemblerGeneratorVisitor::getGeneratedAssemblerCode() const {
     return outputAssemblerCode_;

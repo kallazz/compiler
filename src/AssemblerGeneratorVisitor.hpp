@@ -38,7 +38,7 @@ struct ConditionJumpInfo {
 
 class AssemblerGeneratorVisitor {
 public:
-    AssemblerGeneratorVisitor(const SymbolTable& symbolTable);
+    AssemblerGeneratorVisitor(const SymbolTable& symbolTable, const bool isMultiplicationProcedureNeeded, const bool isDivisionProcedureNeeded, const bool isModuloProcedureNeeded);
 
     void visitConditionNode(const ConditionNode& conditionNode);
     void visitExpressionNode(const ExpressionNode& expressionNode);
@@ -49,12 +49,12 @@ public:
     void visitArgumentsNode(const ArgumentsNode&);
     void visitAssignmentNode(const AssignmentNode& assignmentNode);
     void visitCommandsNode(const CommandsNode& commandsNode);
-    void visitDeclarationsNode(const DeclarationsNode& declarationsNode);
+    void visitDeclarationsNode(const DeclarationsNode&);
     void visitForLoopNode(const ForLoopNode& forLoopNode);
     void visitIfNode(const IfNode& ifNode);
     void visitMainNode(const MainNode& mainNode);
     void visitProcedureCallNode(const ProcedureCallNode& procedureCallNode);
-    void visitProcedureHeadNode(const ProcedureHeadNode& procedureHeadNode);
+    void visitProcedureHeadNode(const ProcedureHeadNode&);
     void visitProceduresNode(const ProceduresNode& proceduresNode);
     void visitReadNode(const ReadNode& readNode);
     void visitRepeatLoopNode(const RepeatLoopNode& repeatLoopNode);
@@ -79,6 +79,9 @@ private:
     void generateModuloProcedure();
 
     const SymbolTable& symbolTable_;
+    const bool isMultiplicationProcedureNeeded_;
+    const bool isDivisionProcedureNeeded_;
+    const bool isModuloProcedureNeeded_;
     const bool shouldWriteComments_;
     std::string outputAssemblerCode_;
     int forLoopsCounter_;

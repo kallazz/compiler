@@ -240,7 +240,6 @@ bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string&
     return true;
 }
 
-    #include <iostream>
 bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, std::unordered_map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos) {
     if ((variableTable.find(name) != variableTable.end()) || (argumentInfos && findArgumentInfo(name, *argumentInfos))) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
@@ -259,9 +258,6 @@ bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& 
 
     const long long arraySize = upperBound - lowerBound + 1;
     const long long zeroAddress = currentAvailableAddress_ - lowerBound;
-
-    std::cout << "Upper bound is " << upperBound << '\n';
-    std::cout << "Size is " << arraySize << '\n';
 
     if (!checkIfMemoryLimitWontGetExceeded(lineNumber, arraySize)) {
         return false;
@@ -412,8 +408,6 @@ std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& arg
 
 bool SymbolTable::checkIfMemoryLimitWontGetExceeded(const int lineNumber, const long long amountOfAdressesToReserve) {
     const long long amountOfAvailableAddresses = MAX_AVAILABLE_ADDRESS - currentAvailableAddress_;
-    std::cout << "Available: " << amountOfAvailableAddresses << '\n';
-    std::cout << "To reserve: " << amountOfAdressesToReserve << '\n';
     if (amountOfAdressesToReserve > amountOfAvailableAddresses) {
         compilationError_ = {"memory limit exceeded.", lineNumber};
         return false;

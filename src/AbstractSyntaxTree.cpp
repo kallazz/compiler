@@ -56,7 +56,7 @@ bool AbstractSyntaxTree::fillSymbolTable() {
 }
 
 std::string AbstractSyntaxTree::generateAssembler() const {
-    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_);
+    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_, isMultiplicationProcedureNeeded_, isDivisionProcedureNeeded_, isModuloProcedureNeeded_);
 
     proceduresNode_->accept(assemblerGeneratorVisitor);
     mainNode_->accept(assemblerGeneratorVisitor);
