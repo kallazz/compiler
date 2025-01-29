@@ -2,7 +2,7 @@
 
 %{
     #include "parser.tab.h"
-    #include <string.h>
+    #include <stdlib.h>
     #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno;
 %}
 
@@ -12,7 +12,7 @@
 #.*             { /* Ignore comments */ }
 \n              { /* Ignore endlines */ }
 [_a-z]+         { yylval.text = strdup(yytext); return NAME; }
-[1-9][0-9]*|0   { yylval.number = atoi(yytext); return NUM; }
+[1-9][0-9]*|0   { yylval.number = atoll(yytext); return NUM; }
 "+"             { return ADD; }
 "-"             { return SUB; }
 "*"             { return MUL; }

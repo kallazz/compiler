@@ -347,6 +347,14 @@ def test_variable_initialized_afer_procedure_call():
     _run_symbol_table_working_test(input_code)
 
 
+def test_memory_limit_exceeded():
+    array_max_index = 2**62
+    input_code = f"PROGRAM IS t[0:{array_max_index}] BEGIN t[0] := 0; END"
+    expected_error_message = f"Error at line 1: memory limit exceeded."
+
+    _run_symbol_table_error_test(input_code, expected_error_message)
+
+
 @pytest.mark.parametrize("correct_program_file_name", os.listdir(_CORRECT_PROGRAMS_DIR))
 def test_correct_programs(correct_program_file_name):
     with open(os.path.join(_CORRECT_PROGRAMS_DIR, correct_program_file_name), "r") as file:

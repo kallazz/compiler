@@ -1,16 +1,24 @@
 #include "SymbolTable.hpp"
+#include <cmath>
 
 constexpr long long FIRST_AVAILABLE_ADDRESS = 13;
+const long long MAX_AVAILABLE_ADDRESS = pow(2, 62);
 
 SymbolTable::SymbolTable() : currentAvailableAddress_(FIRST_AVAILABLE_ADDRESS), shouldReturnErrorInstantly_(false) {}
 
-void SymbolTable::declareGlobalConstant(const long long value) {
+bool SymbolTable::declareGlobalConstant(const int lineNumber, const long long value) {
     const std::string constantName = "!" + std::to_string(value);
 
     if ((globalConstantTable_.find(constantName) == globalConstantTable_.end())) {
+        if (!checkIfMemoryLimitWontGetExceeded(lineNumber, 1)) {
+            return false;
+        }
+
         globalConstantTable_.insert({constantName, {currentAvailableAddress_, value}});
         currentAvailableAddress_++;
     }
+
+    return true;
 }
 
 bool SymbolTable::declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator, const bool isInitialized) {
@@ -69,6 +77,11 @@ bool SymbolTable::checkIfArrayVariableExistsInProcedure(const int lineNumber, co
 bool SymbolTable::declareProcedure(const int lineNumber, const std::string& name, const std::vector<ArgumentDeclaration>& argumentDeclarations) {
     if (procedureTable_.find(name) != procedureTable_.end()) {
         compilationError_ = {"redeclaration of procedure `" + name + "`.", lineNumber};
+        return false;
+    }
+
+    const long long amountOfAddressesToReserve = argumentDeclarations.size() + 1;
+    if (!checkIfMemoryLimitWontGetExceeded(lineNumber, amountOfAddressesToReserve)) {
         return false;
     }
 
@@ -154,6 +167,58 @@ void SymbolTable::renameVariableInProcedure(const std::string& name, const std::
     procedureVariableTable.insert({newName, variableInfo});
 }
 
+long long SymbolTable::getGlobalConstantAddress(const long long value) const {
+    const std::string constantName = "!" + std::to_string(value);
+    return globalConstantTable_.at(constantName).address;
+}
+
+long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
+    return mainVariableTable_.at(name).address;
+}
+
+std::pair<long long, bool> SymbolTable::getVariableAddressInProcedure(const std::string& name, const std::string& procedureName) const {
+    const auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
+    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
+
+    const auto it = procedureVariableTable.find(name);
+    if (it != procedureVariableTable.end()) {
+        const bool isPointer = false;
+        return {it->second.address, isPointer};
+    }
+
+    const bool isPointer = true;
+    return {(*findArgumentInfo(name, procedureArgumentInfos)).address, isPointer};
+}
+
+std::vector<long long> SymbolTable::getProcedureArgumentsAddresses(const std::string& procedureName) const {
+    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
+    std::vector<long long> argumentsAddresses;
+
+    for (const auto& argumentInfo : procedureArgumentInfos) {
+        argumentsAddresses.push_back(argumentInfo.address);
+    }
+
+    return argumentsAddresses;
+}
+
+long long SymbolTable::getProcedureReturnAddress(const std::string& procedureName) const {
+    return procedureTable_.at(procedureName).returnAddress;
+}
+
+std::vector<ConstantInfo> SymbolTable::getGlobalConstantInfos() const {
+    std::vector<ConstantInfo> constantInfos;
+    for (const auto& [_, constantInfo] : globalConstantTable_) {
+        constantInfos.push_back(constantInfo);
+    }
+
+    return constantInfos;
+}
+
+bool SymbolTable::checkIfGlobalConstantExists(const long long value) const {
+    const std::string constantName = "!" + std::to_string(value);
+    return globalConstantTable_.find(constantName) != globalConstantTable_.end();
+}
+
 bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string& name, std::unordered_map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos, const bool isIterator, const bool isInitialized) {
     if ((variableTable.find(name) != variableTable.end()) || (argumentInfos && findArgumentInfo(name, *argumentInfos))) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
@@ -165,12 +230,17 @@ bool SymbolTable::declareNumberVariable(const int lineNumber, const std::string&
         return false;
     }
 
+    if (!checkIfMemoryLimitWontGetExceeded(lineNumber, 1)) {
+        return false;
+    }
+
     variableTable.insert({name, {currentAvailableAddress_, std::nullopt, isIterator, isInitialized}});
     currentAvailableAddress_++;
 
     return true;
 }
 
+    #include <iostream>
 bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound, std::unordered_map<std::string, VariableInfo>& variableTable, const std::optional<std::reference_wrapper<const std::vector<ArgumentInfo>>> argumentInfos) {
     if ((variableTable.find(name) != variableTable.end()) || (argumentInfos && findArgumentInfo(name, *argumentInfos))) {
         compilationError_ = {"redeclaration of variable `" + name + "`.", lineNumber};
@@ -187,9 +257,15 @@ bool SymbolTable::declareArrayVariable(const int lineNumber, const std::string& 
         return false;
     }
 
-
     const long long arraySize = upperBound - lowerBound + 1;
     const long long zeroAddress = currentAvailableAddress_ - lowerBound;
+
+    std::cout << "Upper bound is " << upperBound << '\n';
+    std::cout << "Size is " << arraySize << '\n';
+
+    if (!checkIfMemoryLimitWontGetExceeded(lineNumber, arraySize)) {
+        return false;
+    }
 
     variableTable.insert({name, {zeroAddress, std::make_pair(lowerBound, upperBound)}});
     currentAvailableAddress_ += arraySize;
@@ -334,56 +410,15 @@ std::optional<ArgumentInfo> SymbolTable::findArgumentInfo(const std::string& arg
     return std::nullopt;
 }
 
-bool SymbolTable::checkIfGlobalConstantExists(const long long value) const {
-    const std::string constantName = "!" + std::to_string(value);
-    return globalConstantTable_.find(constantName) != globalConstantTable_.end();
-}
-
-long long SymbolTable::getGlobalConstantAddress(const long long value) const {
-    const std::string constantName = "!" + std::to_string(value);
-    return globalConstantTable_.at(constantName).address;
-}
-
-long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
-    return mainVariableTable_.at(name).address;
-}
-
-std::pair<long long, bool> SymbolTable::getVariableAddressInProcedure(const std::string& name, const std::string& procedureName) const {
-    const auto& procedureVariableTable = procedureTable_.at(procedureName).variableTable;
-    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
-
-    const auto it = procedureVariableTable.find(name);
-    if (it != procedureVariableTable.end()) {
-        const bool isPointer = false;
-        return {it->second.address, isPointer};
+bool SymbolTable::checkIfMemoryLimitWontGetExceeded(const int lineNumber, const long long amountOfAdressesToReserve) {
+    const long long amountOfAvailableAddresses = MAX_AVAILABLE_ADDRESS - currentAvailableAddress_;
+    std::cout << "Available: " << amountOfAvailableAddresses << '\n';
+    std::cout << "To reserve: " << amountOfAdressesToReserve << '\n';
+    if (amountOfAdressesToReserve > amountOfAvailableAddresses) {
+        compilationError_ = {"memory limit exceeded.", lineNumber};
+        return false;
     }
-
-    const bool isPointer = true;
-    return {(*findArgumentInfo(name, procedureArgumentInfos)).address, isPointer};
-}
-
-std::vector<long long> SymbolTable::getProcedureArgumentsAddresses(const std::string& procedureName) const {
-    const auto& procedureArgumentInfos = procedureTable_.at(procedureName).argumentInfos;
-    std::vector<long long> argumentsAddresses;
-
-    for (const auto& argumentInfo : procedureArgumentInfos) {
-        argumentsAddresses.push_back(argumentInfo.address);
-    }
-
-    return argumentsAddresses;
-}
-
-long long SymbolTable::getProcedureReturnAddress(const std::string& procedureName) const {
-    return procedureTable_.at(procedureName).returnAddress;
-}
-
-std::vector<ConstantInfo> SymbolTable::getGlobalConstantInfos() const {
-    std::vector<ConstantInfo> constantInfos;
-    for (const auto& [_, constantInfo] : globalConstantTable_) {
-        constantInfos.push_back(constantInfo);
-    }
-
-    return constantInfos;
+    return true;
 }
 
 CompilationError SymbolTable::getCompilationError() const {

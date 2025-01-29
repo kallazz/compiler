@@ -21,8 +21,8 @@
 
 SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded) : symbolTable_(symbolTable), isAnyMathematicalProcedureNeeded_(isAnyMathematicalProcedureNeeded), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {
     if (isAnyMathematicalProcedureNeeded) {
-        symbolTable_.declareGlobalConstant(0);
-        symbolTable_.declareGlobalConstant(1);
+        symbolTable_.declareGlobalConstant(0, 0);
+        symbolTable_.declareGlobalConstant(0, 1);
     }
 }
 
@@ -73,8 +73,7 @@ bool SemanticAnalysisVisitor::visitIdentifierNode(const IdentifierNode& identifi
 
 bool SemanticAnalysisVisitor::visitValueNode(const ValueNode& valueNode) {
     if (valueNode.getNumber()) {
-        symbolTable_.declareGlobalConstant(*valueNode.getNumber());
-        return true;
+        return symbolTable_.declareGlobalConstant(valueNode.getLineNumber(), *valueNode.getNumber());
     }
 
     return valueNode.getIdentifierNode() && valueNode.getIdentifierNode()->accept(*this);
@@ -181,9 +180,7 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
         symbolTable_.renameVariableInMain(iteratorName, newIteratorName);
     }
 
-    symbolTable_.declareGlobalConstant(1);
-
-    return true;
+    return symbolTable_.declareGlobalConstant(forLoopNode.getLineNumber(), 1);
 }
 
 bool SemanticAnalysisVisitor::visitIfNode(const IfNode& ifNode) {

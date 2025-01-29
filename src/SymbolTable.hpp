@@ -38,7 +38,7 @@ class SymbolTable {
 public:
     SymbolTable();
 
-    void declareGlobalConstant(const long long value);
+    bool declareGlobalConstant(const int lineNumber, const long long value);
 
     bool declareNumberVariableInMain(const int lineNumber, const std::string& name, const bool isIterator=false, const bool isInitialized=false);
     bool declareArrayVariableInMain(const int lineNumber, const std::string& name, const long long lowerBound, const long long upperBound);
@@ -76,6 +76,7 @@ private:
     bool checkIfArrayVariableExistsInProcedureArguments(const int lineNumber, const std::string& name, const std::vector<ArgumentInfo>& argumentInfos);
     std::optional<std::pair<bool, ArgumentType>> checkIfVariableExistsAndSetItAsInitializedAndGetItsInfo(const std::string& name, const std::optional<std::string> scopeProcedureName);
     std::optional<ArgumentInfo> findArgumentInfo(const std::string& argumentName, const std::vector<ArgumentInfo> &argumentInfos) const;
+    bool checkIfMemoryLimitWontGetExceeded(const int lineNumber, const long long amountOfAdressesToReserve);
 
     std::unordered_map<std::string, VariableInfo> mainVariableTable_;
     std::unordered_map<std::string, ProcedureInfo> procedureTable_;
