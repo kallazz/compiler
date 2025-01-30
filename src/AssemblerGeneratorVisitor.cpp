@@ -38,12 +38,13 @@ constexpr long long MODULO_PROCEDURE_RETURN_ADDRESS = 12;
 Registers' purpose:
     p0 - accumulator
     p1, p2, p3, p4, p5, p6, p7, p8, p9 - help during calculations
-    p10 - multiplication procedure's return
-    p11 - divison procedure's return
-    p12 - modulo procedure's return
-    p13 - storing 0 as it's faster to load it from here than set accumulator to 0 (if it's needed by the program)
-    p14 - storing 1 as it's faster to load it from here than set accumulator to 1 (if it's needed by the program)
-    the rest - storing variables
+    p10 - multiplication procedure's return address
+    p11 - divison procedure's return address
+    p12 - modulo procedure's return address
+    p13 - storing 0 as it's faster to load it from here than set the accumulator to 0
+    p14 - storing 1 as it's faster to load it from here than set the accumulator to 1
+    (0 and 1 will be there only if any of the mathematical procedures is used)
+    the rest - storing variables, numbers used by the program and procedures' return addresses
 */
 
 AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable,
@@ -190,7 +191,7 @@ void AssemblerGeneratorVisitor::visitValueNode(const ValueNode& valueNode) {
     if (valueNode.getIdentifierNode()) {
         valueNode.getIdentifierNode()->accept(*this);
     } else {
-        currentIdentifierAddress_ = symbolTable_.getGlobalConstantAddress(*valueNode.getNumber());
+        currentIdentifierAddress_ = *symbolTable_.getGlobalConstantAddress(*valueNode.getNumber());
         isCurrentIdentifierAddressPointer_ = false;
         isCurrentIdentifierAddressCalculatedPointerForArray_ = false;
     }
@@ -542,12 +543,15 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
     appendLineToOutputCode(loadCommand + " " + std::to_string(firstAddress));
 
-    std::string mathematicalCommand = isSubtraction ? "SUB" : "ADD";
-    if (isSecondAddressPointer) {
-        mathematicalCommand += "I";
-    }
+    const std::optional<long long> zeroAddress = symbolTable_.getGlobalConstantAddress(0);
+    if (!(zeroAddress && zeroAddress == secondAddress)) {
+        std::string mathematicalCommand = isSubtraction ? "SUB" : "ADD";
+        if (isSecondAddressPointer) {
+            mathematicalCommand += "I";
+        }
 
-    appendLineToOutputCode(mathematicalCommand + " " + std::to_string(secondAddress));
+        appendLineToOutputCode(mathematicalCommand + " " + std::to_string(secondAddress));
+    }
 }
 
 void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& valueNode1,
@@ -580,8 +584,8 @@ void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNo
                                        const std::unique_ptr<ValueNode>& valueNode2) {
     valueNode2->accept(*this);
 
-    if (symbolTable_.checkIfGlobalConstantExists(2) &&
-        symbolTable_.getGlobalConstantAddress(2) == currentIdentifierAddress_) {
+    const std::optional<long long> twoAddress = symbolTable_.getGlobalConstantAddress(2);
+    if (twoAddress && *twoAddress == currentIdentifierAddress_) {
         valueNode1->accept(*this);
         const std::string loadCommand = isCurrentIdentifierAddressPointer_ ? "LOADI" : "LOAD";
         appendLineToOutputCode(loadCommand + " " + std::to_string(currentIdentifierAddress_));
@@ -607,7 +611,6 @@ void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNo
         appendLineToOutputCode("STORE " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
         appendLineToOutputCode("JUMP " + FILL_LABEL +
                                std::to_string(procedureNameToJumpIndex.at(DIVISION_PROCEDURE_NAME)) + FILL_LABEL);
-        appendLineToOutputCode("LOAD 3");
     }
 }
 
@@ -635,7 +638,6 @@ void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNo
     appendLineToOutputCode("STORE " + std::to_string(MODULO_PROCEDURE_RETURN_ADDRESS));
     appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MODULO_PROCEDURE_NAME)) +
                            FILL_LABEL);
-    appendLineToOutputCode("LOAD 1");
 }
 
 std::string AssemblerGeneratorVisitor::getVariableNameOrIteratorName(const std::string& variableName) {
@@ -729,8 +731,7 @@ void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
 
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 3");
-    appendLineToOutputCode("LOAD 13");
-    appendLineToOutputCode("ADD 1");
+    appendLineToOutputCode("LOAD 1");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 5");
@@ -740,8 +741,7 @@ void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("SUB 1");
     appendLineToOutputCode("STORE 1");
-    appendLineToOutputCode("LOAD 13");
-    appendLineToOutputCode("ADD 2");
+    appendLineToOutputCode("LOAD 2");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 6");
@@ -751,8 +751,7 @@ void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("SUB 2");
     appendLineToOutputCode("STORE 2");
-    appendLineToOutputCode("LOAD 13");
-    appendLineToOutputCode("ADD 2");
+    appendLineToOutputCode("LOAD 2");
     appendLineToOutputCode("JPOS 2");
     appendLineToOutputCode("JUMP 17");
     appendLineToOutputCode("LOAD 2");
@@ -773,9 +772,7 @@ void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
     appendLineToOutputCode("JUMP -19");
     appendLineToOutputCode("LOAD 5");
     appendLineToOutputCode("ADD 6");
-    appendLineToOutputCode("STORE 4");
-    appendLineToOutputCode("SET -1");
-    appendLineToOutputCode("ADD 4");
+    appendLineToOutputCode("SUB 14");
     appendLineToOutputCode("JZERO 2");
     appendLineToOutputCode("JUMP 4");
     appendLineToOutputCode("LOAD 13");
@@ -795,9 +792,8 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 3");
     appendLineToOutputCode("LOAD 2");
-    appendLineToOutputCode("JZERO 73");
+    appendLineToOutputCode("JZERO 70");
     appendLineToOutputCode("LOAD 1");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 6");
@@ -808,7 +804,6 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     appendLineToOutputCode("SUB 1");
     appendLineToOutputCode("STORE 1");
     appendLineToOutputCode("LOAD 2");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 7");
@@ -858,16 +853,16 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     appendLineToOutputCode("LOAD 5");
     appendLineToOutputCode("SUB 14");
     appendLineToOutputCode("JZERO 2");
-    appendLineToOutputCode("JUMP 10");
+    appendLineToOutputCode("JUMP 9");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("SUB 3");
     appendLineToOutputCode("STORE 3");
     appendLineToOutputCode("LOAD 1");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JZERO 4");
     appendLineToOutputCode("LOAD 3");
     appendLineToOutputCode("SUB 14");
     appendLineToOutputCode("STORE 3");
+    appendLineToOutputCode("LOAD 3");
     appendLineToOutputCode("RTRN " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
 }
 
@@ -879,9 +874,8 @@ void AssemblerGeneratorVisitor::generateModuloProcedure() {
     appendToOutputCode(RESULT_LABEL + std::to_string(jumpToCurrentProcedureIndex) + RESULT_LABEL);
 
     appendLineToOutputCode("LOAD 2");
-    appendLineToOutputCode("JZERO 74");
+    appendLineToOutputCode("JZERO 70");
     appendLineToOutputCode("LOAD 1");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 6");
@@ -892,7 +886,6 @@ void AssemblerGeneratorVisitor::generateModuloProcedure() {
     appendLineToOutputCode("SUB 1");
     appendLineToOutputCode("STORE 1");
     appendLineToOutputCode("LOAD 2");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JNEG 4");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 7");
@@ -903,11 +896,10 @@ void AssemblerGeneratorVisitor::generateModuloProcedure() {
     appendLineToOutputCode("SUB 2");
     appendLineToOutputCode("STORE 2");
     appendLineToOutputCode("LOAD 2");
+    appendLineToOutputCode("STORE 4");
     appendLineToOutputCode("STORE 5");
     appendLineToOutputCode("LOAD 14");
     appendLineToOutputCode("STORE 3");
-    appendLineToOutputCode("LOAD 2");
-    appendLineToOutputCode("STORE 4");
     appendLineToOutputCode("LOAD 4");
     appendLineToOutputCode("SUB 1");
     appendLineToOutputCode("JPOS 8");
@@ -936,7 +928,6 @@ void AssemblerGeneratorVisitor::generateModuloProcedure() {
     appendLineToOutputCode("STORE 1");
     appendLineToOutputCode("JUMP -16");
     appendLineToOutputCode("LOAD 1");
-    appendLineToOutputCode("SUB 13");
     appendLineToOutputCode("JZERO 15");
     appendLineToOutputCode("LOAD 6");
     appendLineToOutputCode("SUB 14");
@@ -955,6 +946,7 @@ void AssemblerGeneratorVisitor::generateModuloProcedure() {
     appendLineToOutputCode("JUMP 3");
     appendLineToOutputCode("LOAD 13");
     appendLineToOutputCode("STORE 1");
+    appendLineToOutputCode("LOAD 1");
     appendLineToOutputCode("RTRN " + std::to_string(MODULO_PROCEDURE_RETURN_ADDRESS));
 }
 

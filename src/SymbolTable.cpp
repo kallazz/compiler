@@ -197,9 +197,15 @@ void SymbolTable::renameVariableInProcedure(const std::string& name, const std::
     procedureVariableTable.insert({newName, variableInfo});
 }
 
-long long SymbolTable::getGlobalConstantAddress(const long long value) const {
+std::optional<long long> SymbolTable::getGlobalConstantAddress(const long long value) const {
     const std::string constantName = "!" + std::to_string(value);
-    return globalConstantTable_.at(constantName).address;
+
+    const auto it = globalConstantTable_.find(constantName);
+    if (it != globalConstantTable_.end()) {
+        return it->second.address;
+    }
+
+    return std::nullopt;
 }
 
 long long SymbolTable::getVariableAddressInMain(const std::string& name) const {
@@ -243,11 +249,6 @@ std::vector<ConstantInfo> SymbolTable::getGlobalConstantInfos() const {
     }
 
     return constantInfos;
-}
-
-bool SymbolTable::checkIfGlobalConstantExists(const long long value) const {
-    const std::string constantName = "!" + std::to_string(value);
-    return globalConstantTable_.find(constantName) != globalConstantTable_.end();
 }
 
 bool SymbolTable::declareNumberVariable(

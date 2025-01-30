@@ -69,14 +69,12 @@ public:
     void renameVariableInProcedure(const std::string& name, const std::string& newName,
                                    const std::string& procedureName);
 
-    long long getGlobalConstantAddress(const long long value) const;
+    std::optional<long long> getGlobalConstantAddress(const long long value) const;
     long long getVariableAddressInMain(const std::string& name) const;
     std::pair<long long, bool> getVariableAddressInProcedure(const std::string& name,
                                                              const std::string& procedureName) const;
     std::vector<long long> getProcedureArgumentsAddresses(const std::string& procedureName) const;
     long long getProcedureReturnAddress(const std::string& procedureName) const;
-
-    bool checkIfGlobalConstantExists(const long long value) const;
 
     std::vector<ConstantInfo> getGlobalConstantInfos() const;
     CompilationError getCompilationError() const;

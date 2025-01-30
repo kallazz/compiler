@@ -85,6 +85,7 @@ def test_assignment(input_code, expected_output_numbers):
     "input_code, expected_output_numbers",
     [
         ("PROGRAM IS x BEGIN x := 15 + 17; WRITE x; END", [32]),
+        ("PROGRAM IS x BEGIN x := 15 + 0; WRITE x; END", [15]),
         ("PROGRAM IS x, y, z BEGIN y := 3; z := 4; x := y + z; WRITE x; END", [7]),
         ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x := y[n] + z[n]; WRITE x; END", [7]),
         (
@@ -96,6 +97,7 @@ def test_assignment(input_code, expected_output_numbers):
             [7],
         ),
         ("PROGRAM IS x BEGIN x := 15 - 17; WRITE x; END", [-2]),
+        ("PROGRAM IS x BEGIN x := 15 - 0; WRITE x; END", [15]),
         ("PROGRAM IS x, y, z BEGIN y := 6; z := 4; x := y - z; WRITE x; END", [2]),
         ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 6; z[n] := 4; x := y[n] - z[n]; WRITE x; END", [2]),
         (
@@ -118,7 +120,8 @@ def test_assignment(input_code, expected_output_numbers):
             [12],
         ),
         ("PROGRAM IS x BEGIN x := 32 / 12; WRITE x; END", [2]),
-        ("PROGRAM IS x BEGIN x := 64 / 0; WRITE x; END", [0]),
+        ("PROGRAM IS x BEGIN x := 64 / 2; WRITE x; END", [32]),
+        ("PROGRAM IS x BEGIN x := 128 / 0; WRITE x; END", [0]),
         ("PROGRAM IS x, y, z BEGIN y := 12; z := 4; x := y / z; WRITE x; END", [3]),
         ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 12; z[n] := 4; x := y[n] / z[n]; WRITE x; END", [3]),
         (
