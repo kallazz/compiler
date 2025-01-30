@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import subprocess
 
@@ -84,81 +85,77 @@ def test_assignment(input_code, expected_output_numbers):
     "input_code, expected_output_numbers",
     [
         ("PROGRAM IS x BEGIN x := 15 + 17; WRITE x; END", [32]),
-        ("PROGRAM IS x BEGIN x := 15 - 17; WRITE x; END", [-2]),
         ("PROGRAM IS x, y, z BEGIN y := 3; z := 4; x := y + z; WRITE x; END", [7]),
-        ("PROGRAM IS x, y, z BEGIN y := 3; z := 4; x := y - z; WRITE x; END", [-1]),
         ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x := y[n] + z[n]; WRITE x; END", [7]),
-        ("PROGRAM IS x, y BEGIN y := 15; x := y + 17; WRITE x; END", [32]),
-        ("PROGRAM IS x, y BEGIN y := 17; x := 15 + y; WRITE x; END", [32]),
-        ("PROGRAM IS x, y BEGIN y := 15; x := y - 17; WRITE x; END", [-2]),
-        ("PROGRAM IS x, y BEGIN y := 17; x := 15 - y; WRITE x; END", [-2]),
-        ("PROGRAM IS x, y[5:10], n BEGIN n := 5; y[n] := 17; x := 15 + y[n]; WRITE x; END", [32]),
         (
-            "PROGRAM IS z[-7:7], x[-5:10], y[5:10], n BEGIN n := 5; y[n] := 17; x[n] := 15; z[n] := x[n] + y[n]; WRITE z[n]; END",
-            [32],
-        ),
-        ("PROGRAM IS x BEGIN x := 24 * 11; WRITE x; END", [264]),
-        ("PROGRAM IS x BEGIN x := 16 * 8; WRITE x; END", [128]),
-        ("PROGRAM IS x BEGIN x := 7 * 5; WRITE x; END", [35]),
-        ("PROGRAM IS x BEGIN x := 5 * 7; WRITE x; END", [35]),
-        ("PROGRAM IS x BEGIN x := -5 * 7; WRITE x; END", [-35]),
-        ("PROGRAM IS x BEGIN x := -5 * -7; WRITE x; END", [35]),
-        ("PROGRAM IS x BEGIN x := 5 * -7; WRITE x; END", [-35]),
-        ("PROGRAM IS x, y, z BEGIN y := 5; z := 7; x := y * z; WRITE x; END", [35]),
-        ("PROGRAM IS x, y[-10:-3], z[7:15] BEGIN y[-5] := 5; z[12] := 7; x := y[-5] * z[12]; WRITE x; END", [35]),
-        (
-            "PROGRAM IS x, y[-10:-3], n, m, z[7:15] BEGIN n := -5; m := 12; y[-5] := 5; z[12] := 7; x := y[n] * z[m]; WRITE x; END",
-            [35],
-        ),
-        (
-            "PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 5; z[12] := 7; x[l] := y[n] * z[m]; WRITE x[3]; END",
-            [35],
-        ),
-        ("PROGRAM IS x BEGIN x := 12 / 2; WRITE x; END", [6]),
-        ("PROGRAM IS x BEGIN x := 17 / 2; WRITE x; END", [8]),
-        ("PROGRAM IS x BEGIN x := 9 / -2; WRITE x; END", [-5]),
-        ("PROGRAM IS x BEGIN x := 9 / 2; WRITE x; END", [4]),
-        ("PROGRAM IS x BEGIN x := 10 / -2; WRITE x; END", [-5]),
-        ("PROGRAM IS x BEGIN x := 10 / 2; WRITE x; END", [5]),
-        ("PROGRAM IS x BEGIN x := 10 / 0; WRITE x; END", [0]),
-        ("PROGRAM IS x, t[1:10] BEGIN t[5] := 17; x := t[5] / 2; WRITE x; END", [8]),
-        ("PROGRAM IS x, t[1:10], n BEGIN n := 5; t[5] := 17; x := t[n] / 2; WRITE x; END", [8]),
-        ("PROGRAM IS x BEGIN x := 24 / 11; WRITE x; END", [2]),
-        ("PROGRAM IS x BEGIN x := 16 / 8; WRITE x; END", [2]),
-        ("PROGRAM IS x BEGIN x := 50 / 10; WRITE x; END", [5]),
-        ("PROGRAM IS x BEGIN x := 50 / -10; WRITE x; END", [-5]),
-        ("PROGRAM IS x BEGIN x := -50 / 10; WRITE x; END", [-5]),
-        ("PROGRAM IS x BEGIN x := -50 / -10; WRITE x; END", [5]),
-        ("PROGRAM IS x BEGIN x := -3 / 2; WRITE x; END", [-2]),
-        ("PROGRAM IS x, y, z BEGIN y := 35; z := 5; x := y / z; WRITE x; END", [7]),
-        ("PROGRAM IS x, y[-10:-3], z[7:15] BEGIN y[-5] := 35; z[12] := 5; x := y[-5] / z[12]; WRITE x; END", [7]),
-        (
-            "PROGRAM IS x, y[-10:-3], n, m, z[7:15] BEGIN n := -5; m := 12; y[-5] := 35; z[12] := 5; x := y[n] / z[m]; WRITE x; END",
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x[-4] := y[n] + z[n]; WRITE x[-4]; END",
             [7],
         ),
         (
-            "PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 35; z[12] := 5; x[l] := y[n] / z[m]; WRITE x[3]; END",
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n, m BEGIN n := 5; m := -4; y[n] := 3; z[n] := 4; x[m] := y[n] + z[n]; WRITE x[-4]; END",
             [7],
         ),
-        ("PROGRAM IS x BEGIN x := 12 % 2; WRITE x; END", [0]),
-        ("PROGRAM IS x BEGIN x := 13 % 2; WRITE x; END", [1]),
-        ("PROGRAM IS x BEGIN x := 127 % 12; WRITE x; END", [7]),
-        # ("PROGRAM IS x BEGIN x := 10 % 0; WRITE x; END", [0]),
-        ("PROGRAM IS x BEGIN x := 10 % 3; WRITE x; END", [1]),
-        ("PROGRAM IS x BEGIN x := 10 % -3; WRITE x; END", [-2]),
-        ("PROGRAM IS x BEGIN x := -10 % 3; WRITE x; END", [2]),
-        ("PROGRAM IS x BEGIN x := -10 % -3; WRITE x; END", [-1]),
-        ("PROGRAM IS x BEGIN x := 8968 % -8; WRITE x; END", [0]),
-        ("PROGRAM IS x BEGIN x := -5467 % 11; WRITE x; END", [0]),
-        ("PROGRAM IS x BEGIN x := 548 % -2901; WRITE x; END", [-2353]),
+        ("PROGRAM IS x BEGIN x := 15 - 17; WRITE x; END", [-2]),
+        ("PROGRAM IS x, y, z BEGIN y := 6; z := 4; x := y - z; WRITE x; END", [2]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 6; z[n] := 4; x := y[n] - z[n]; WRITE x; END", [2]),
         (
-            "PROGRAM IS x[-100:100], y[-10:-3], n, m, l, z[7:15] BEGIN l := 3; n := -5; m := 12; y[-5] := 35; z[12] := 6; x[l] := y[n] % z[m]; WRITE x[3]; END",
-            [5],
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 6; z[n] := 4; x[-4] := y[n] - z[n]; WRITE x[-4]; END",
+            [2],
+        ),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n, m BEGIN n := 5; m := -4; y[n] := 6; z[n] := 4; x[m] := y[n] - z[n]; WRITE x[-4]; END",
+            [2],
+        ),
+        ("PROGRAM IS x BEGIN x := 15 * 17; WRITE x; END", [255]),
+        ("PROGRAM IS x, y, z BEGIN y := 3; z := 4; x := y * z; WRITE x; END", [12]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x := y[n] * z[n]; WRITE x; END", [12]),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x[-4] := y[n] * z[n]; WRITE x[-4]; END",
+            [12],
+        ),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n, m BEGIN n := 5; m := -4; y[n] := 3; z[n] := 4; x[m] := y[n] * z[n]; WRITE x[-4]; END",
+            [12],
+        ),
+        ("PROGRAM IS x BEGIN x := 32 / 12; WRITE x; END", [2]),
+        ("PROGRAM IS x BEGIN x := 64 / 0; WRITE x; END", [0]),
+        ("PROGRAM IS x, y, z BEGIN y := 12; z := 4; x := y / z; WRITE x; END", [3]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 12; z[n] := 4; x := y[n] / z[n]; WRITE x; END", [3]),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 12; z[n] := 4; x[-4] := y[n] / z[n]; WRITE x[-4]; END",
+            [3],
+        ),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n, m BEGIN n := 5; m := -4; y[n] := 12; z[n] := 4; x[m] := y[n] / z[n]; WRITE x[-4]; END",
+            [3],
+        ),
+        ("PROGRAM IS x BEGIN x := 32 % 12; WRITE x; END", [8]),
+        ("PROGRAM IS x BEGIN x := 64 % 0; WRITE x; END", [0]),
+        ("PROGRAM IS x BEGIN x := 128 % 128; WRITE x; END", [0]),
+        ("PROGRAM IS x BEGIN x := 256 % 128; WRITE x; END", [0]),
+        ("PROGRAM IS x, y, z BEGIN y := 12; z := 5; x := y % z; WRITE x; END", [2]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 12; z[n] := 5; x := y[n] % z[n]; WRITE x; END", [2]),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 12; z[n] := 5; x[-4] := y[n] % z[n]; WRITE x[-4]; END",
+            [2],
+        ),
+        (
+            "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n, m BEGIN n := 5; m := -4; y[n] := 12; z[n] := 5; x[m] := y[n] % z[n]; WRITE x[-4]; END",
+            [2],
         ),
     ],
 )
 def test_assignment_with_expression(input_code, expected_output_numbers):
     _run_assembler_generator_test(input_code, expected_output_numbers)
+
+
+def test_arithmetic_operations():
+    for _ in range(1000):
+        a = random.randint(-1000, 1000)
+        b = random.randint(-1000, 1000)
+        input_code = f"PROGRAM IS x BEGIN x := {a} + {b}; WRITE x; x := {a} - {b}; WRITE x; x := {a} * {b}; WRITE x; x := {a} / {b}; WRITE x; x := {a} % {b}; WRITE x; END"
+        expected_output_numbers = [a + b, a - b, a * b, a // b if b != 0 else 0, a % b if b != 0 else 0]
+        _run_assembler_generator_test(input_code, expected_output_numbers)
 
 
 @pytest.mark.parametrize(
