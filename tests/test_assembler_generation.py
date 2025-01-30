@@ -1,5 +1,5 @@
-import re
 import os
+import re
 import subprocess
 
 import pytest
@@ -271,13 +271,19 @@ def test_for_loop(input_code, expected_output_numbers):
             "",
         ),
         (
-            "PROCEDURE proc(T t) IS x BEGIN x := t[10]; WRITE x; END PROGRAM IS t[-10:10] BEGIN t[10] := 123; proc(t); END",[123],"",
+            "PROCEDURE proc(T t) IS x BEGIN x := t[10]; WRITE x; END PROGRAM IS t[-10:10] BEGIN t[10] := 123; proc(t); END",
+            [123],
+            "",
         ),
         (
-            "PROCEDURE proc(T t, n) IS x BEGIN x := t[n]; WRITE x; END PROGRAM IS t[-10:10], n BEGIN n := 10; t[10] := 123; proc(t, n); END",[123],"",
+            "PROCEDURE proc(T t, n) IS x BEGIN x := t[n]; WRITE x; END PROGRAM IS t[-10:10], n BEGIN n := 10; t[10] := 123; proc(t, n); END",
+            [123],
+            "",
         ),
         (
-            "PROCEDURE proc(T t) IS x BEGIN x := t[10] + t[11]; WRITE x; END PROGRAM IS t[-10:15] BEGIN t[10] := 123; t[11] := 2; proc(t); END",[125],"",
+            "PROCEDURE proc(T t) IS x BEGIN x := t[10] + t[11]; WRITE x; END PROGRAM IS t[-10:15] BEGIN t[10] := 123; t[11] := 2; proc(t); END",
+            [125],
+            "",
         ),
     ],
 )

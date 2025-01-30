@@ -3,7 +3,8 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-WriteNode::WriteNode(const int lineNumber, ValueNode* valueNode) : AbstractSyntaxTreeStatementNode(lineNumber), valueNode_(valueNode) {}
+WriteNode::WriteNode(const int lineNumber, ValueNode* valueNode)
+    : AbstractSyntaxTreeStatementNode(lineNumber), valueNode_(valueNode) {}
 
 void WriteNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     return assemblerGeneratorVisitor.visitWriteNode(*this);

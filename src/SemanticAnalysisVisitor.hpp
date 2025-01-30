@@ -62,4 +62,4 @@ private:
     bool willNumberVariableBeModified_;
 };
 
-#endif // SEMANTIC_ANALYSIS_VISITOR_HPP
+#endif  // SEMANTIC_ANALYSIS_VISITOR_HPP

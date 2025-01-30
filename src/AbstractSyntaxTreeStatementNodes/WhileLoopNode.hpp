@@ -22,4 +22,4 @@ private:
     const std::unique_ptr<CommandsNode> commandsNode_;
 };
 
-#endif // WHILE_LOOP_NODE_HPP
+#endif  // WHILE_LOOP_NODE_HPP

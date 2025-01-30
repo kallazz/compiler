@@ -8,4 +8,4 @@ struct Argument {
     const std::string name;
 };
 
-#endif // ARGUMENT_HPP
+#endif  // ARGUMENT_HPP

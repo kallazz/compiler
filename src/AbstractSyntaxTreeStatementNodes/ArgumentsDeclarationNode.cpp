@@ -3,9 +3,11 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ArgumentsDeclarationNode::ArgumentsDeclarationNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
+ArgumentsDeclarationNode::ArgumentsDeclarationNode(const int lineNumber)
+    : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
-void ArgumentsDeclarationNode::addArgumentDeclaration(const int lineNumber, const std::string name, const bool isArray) {
+void ArgumentsDeclarationNode::addArgumentDeclaration(const int lineNumber, const std::string name,
+                                                      const bool isArray) {
     const ArgumentType argumentType = (isArray) ? ArgumentType::ARRAY : ArgumentType::NUMBER;
     argumentDeclarations_.push_back({lineNumber, name, argumentType});
 }

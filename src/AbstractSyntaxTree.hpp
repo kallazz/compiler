@@ -30,4 +30,4 @@ private:
     bool isModuloProcedureNeeded_;
 };
 
-#endif // ABSTRACT_SYNTAX_TREE
+#endif  // ABSTRACT_SYNTAX_TREE

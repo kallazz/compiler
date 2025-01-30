@@ -22,4 +22,4 @@ private:
     const std::unique_ptr<ConditionNode> conditionNode_;
 };
 
-#endif // REPEAT_LOOP_NODE_HPP
+#endif  // REPEAT_LOOP_NODE_HPP

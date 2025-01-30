@@ -6,7 +6,8 @@
 MainNode::MainNode(const int lineNumber, DeclarationsNode* declarationsNode, CommandsNode* commandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), declarationsNode_(declarationsNode), commandsNode_(commandsNode) {}
 
-MainNode::MainNode(const int lineNumber, CommandsNode* commandsNode) : AbstractSyntaxTreeStatementNode(lineNumber), commandsNode_(commandsNode) {}
+MainNode::MainNode(const int lineNumber, CommandsNode* commandsNode)
+    : AbstractSyntaxTreeStatementNode(lineNumber), commandsNode_(commandsNode) {}
 
 void MainNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     return assemblerGeneratorVisitor.visitMainNode(*this);

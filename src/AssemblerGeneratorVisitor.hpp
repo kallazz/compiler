@@ -38,7 +38,8 @@ struct ConditionJumpInfo {
 
 class AssemblerGeneratorVisitor {
 public:
-    AssemblerGeneratorVisitor(const SymbolTable& symbolTable, const bool isMultiplicationProcedureNeeded, const bool isDivisionProcedureNeeded, const bool isModuloProcedureNeeded);
+    AssemblerGeneratorVisitor(const SymbolTable& symbolTable, const bool isMultiplicationProcedureNeeded,
+                              const bool isDivisionProcedureNeeded, const bool isModuloProcedureNeeded);
 
     void visitConditionNode(const ConditionNode& conditionNode);
     void visitExpressionNode(const ExpressionNode& expressionNode);
@@ -65,7 +66,8 @@ public:
 
 private:
     void setGlobalConstantValues();
-    void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator);
+    void addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2,
+                       const MathematicalOperator mathematicalOperator);
     void multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     void modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
@@ -95,4 +97,4 @@ private:
     std::unordered_map<std::string, int> procedureNameToJumpIndex;
 };
 
-#endif // ASSEMBLER_GENERATOR_VISITOR_HPP
+#endif  // ASSEMBLER_GENERATOR_VISITOR_HPP

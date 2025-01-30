@@ -19,4 +19,4 @@ private:
     const std::unique_ptr<ValueNode> valueNode_;
 };
 
-#endif // WRITE_NODE_HPP
+#endif  // WRITE_NODE_HPP

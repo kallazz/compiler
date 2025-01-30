@@ -3,8 +3,14 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ForLoopNode::ForLoopNode(const int lineNumber, const std::string iteratorName, ValueNode* startValueNode, ValueNode* endValueNode, CommandsNode* commandsNode, bool isIteratorIncremented)
-    : AbstractSyntaxTreeStatementNode(lineNumber), iteratorName_(iteratorName), startValueNode_(startValueNode), endValueNode_(endValueNode), commandsNode_(commandsNode), isIteratorIncremented_(isIteratorIncremented) {}
+ForLoopNode::ForLoopNode(const int lineNumber, const std::string iteratorName, ValueNode* startValueNode,
+                         ValueNode* endValueNode, CommandsNode* commandsNode, bool isIteratorIncremented)
+    : AbstractSyntaxTreeStatementNode(lineNumber),
+      iteratorName_(iteratorName),
+      startValueNode_(startValueNode),
+      endValueNode_(endValueNode),
+      commandsNode_(commandsNode),
+      isIteratorIncremented_(isIteratorIncremented) {}
 
 void ForLoopNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     return assemblerGeneratorVisitor.visitForLoopNode(*this);

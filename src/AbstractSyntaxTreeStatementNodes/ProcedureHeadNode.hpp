@@ -22,4 +22,4 @@ private:
     const std::unique_ptr<ArgumentsDeclarationNode> argumentsDeclarationNode_;
 };
 
-#endif // PROCEDURE_HEAD_NODE_HPP
+#endif  // PROCEDURE_HEAD_NODE_HPP

@@ -3,7 +3,8 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ReadNode::ReadNode(const int lineNumber, IdentifierNode* identifierNode) : AbstractSyntaxTreeStatementNode(lineNumber), identifierNode_(identifierNode) {}
+ReadNode::ReadNode(const int lineNumber, IdentifierNode* identifierNode)
+    : AbstractSyntaxTreeStatementNode(lineNumber), identifierNode_(identifierNode) {}
 
 void ReadNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     return assemblerGeneratorVisitor.visitReadNode(*this);

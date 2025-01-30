@@ -23,4 +23,4 @@ private:
     const std::unique_ptr<CommandsNode> commandsNode_;
 };
 
-#endif // MAIN_NODE_HPP
+#endif  // MAIN_NODE_HPP

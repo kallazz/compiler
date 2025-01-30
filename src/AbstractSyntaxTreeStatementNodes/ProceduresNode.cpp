@@ -5,7 +5,8 @@
 
 ProceduresNode::ProceduresNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
-void ProceduresNode::addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode) {
+void ProceduresNode::addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode,
+                                  CommandsNode* commandsNode) {
     procedures_.emplace_back(std::make_unique<Procedure>(procedureHeadNode, declarationsNode, commandsNode));
 }
 

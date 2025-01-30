@@ -23,4 +23,4 @@ private:
     const std::unique_ptr<IdentifierNode> identifierNode_;
 };
 
-#endif // VALUE_NODE_HPP
+#endif  // VALUE_NODE_HPP

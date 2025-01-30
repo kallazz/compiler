@@ -19,4 +19,4 @@ private:
     const std::unique_ptr<IdentifierNode> identifierNode_;
 };
 
-#endif // READ_NODE_HPP
+#endif  // READ_NODE_HPP

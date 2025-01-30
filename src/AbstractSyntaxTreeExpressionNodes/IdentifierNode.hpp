@@ -25,4 +25,4 @@ private:
     const std::optional<long long> indexValue_;
 };
 
-#endif // IDENTIFIER_NODE_HPP
+#endif  // IDENTIFIER_NODE_HPP

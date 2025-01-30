@@ -22,4 +22,4 @@ private:
     const std::unique_ptr<ArgumentsNode> argumentsNode_;
 };
 
-#endif // PROCEDURE_CALL_NODE_HPP
+#endif  // PROCEDURE_CALL_NODE_HPP

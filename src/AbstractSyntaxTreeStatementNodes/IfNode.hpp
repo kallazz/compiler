@@ -9,7 +9,8 @@
 
 class IfNode : public AbstractSyntaxTreeStatementNode {
 public:
-    IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode, CommandsNode* elseCommandsNode = nullptr);
+    IfNode(const int lineNumber, ConditionNode* conditionNode, CommandsNode* thenCommandsNode,
+           CommandsNode* elseCommandsNode = nullptr);
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
@@ -24,4 +25,4 @@ private:
     const std::unique_ptr<CommandsNode> elseCommandsNode_;
 };
 
-#endif // IF_NODE_HPP
+#endif  // IF_NODE_HPP

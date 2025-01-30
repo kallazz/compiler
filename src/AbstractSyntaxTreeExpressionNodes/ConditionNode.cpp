@@ -3,8 +3,12 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparisonOperator comparisonOperator)
-    : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode1), valueNode2_(valueNode2), comparisonOperator_(comparisonOperator) {}
+ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2,
+                             const ComparisonOperator comparisonOperator)
+    : AbstractSyntaxTreeExpressionNode(lineNumber),
+      valueNode1_(valueNode1),
+      valueNode2_(valueNode2),
+      comparisonOperator_(comparisonOperator) {}
 
 void ConditionNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     assemblerGeneratorVisitor.visitConditionNode(*this);

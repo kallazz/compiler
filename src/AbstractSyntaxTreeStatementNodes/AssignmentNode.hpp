@@ -20,4 +20,4 @@ private:
     const std::unique_ptr<ExpressionNode> expressionNode_;
 };
 
-#endif // ASSIGNMENT_NODE_HPP
+#endif  // ASSIGNMENT_NODE_HPP

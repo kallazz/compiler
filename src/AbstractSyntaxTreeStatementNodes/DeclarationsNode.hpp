@@ -19,7 +19,8 @@ public:
     DeclarationsNode(const int lineNumber);
 
     void addDeclaration(const int lineNumber, const std::string name);
-    void addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound);
+    void addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound,
+                        long long arrayUpperBound);
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
@@ -30,4 +31,4 @@ private:
     std::vector<Declaration> declarations_;
 };
 
-#endif // DECLARATIONS_NODE_HPP
+#endif  // DECLARATIONS_NODE_HPP

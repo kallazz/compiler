@@ -3,7 +3,7 @@ import subprocess
 
 import pytest
 
-from .config import INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME, CORRECT_PROGRAMS_DIR
+from .config import CORRECT_PROGRAMS_DIR, INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME
 
 
 def _run_symbol_table_error_test(input_code: str, expected_error_message: str) -> None:

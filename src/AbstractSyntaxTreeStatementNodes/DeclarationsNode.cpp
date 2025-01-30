@@ -9,7 +9,8 @@ void DeclarationsNode::addDeclaration(const int lineNumber, const std::string na
     declarations_.push_back({lineNumber, name, std::nullopt, std::nullopt});
 }
 
-void DeclarationsNode::addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound, long long arrayUpperBound) {
+void DeclarationsNode::addDeclaration(const int lineNumber, const std::string name, long long arrayLowerBound,
+                                      long long arrayUpperBound) {
     declarations_.push_back({lineNumber, name, arrayLowerBound, arrayUpperBound});
 }
 

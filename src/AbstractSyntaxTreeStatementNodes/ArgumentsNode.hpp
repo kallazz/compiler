@@ -22,4 +22,4 @@ private:
     std::vector<Argument> arguments_;
 };
 
-#endif // ARGUMENTS_NODE_HPP
+#endif  // ARGUMENTS_NODE_HPP

@@ -3,9 +3,11 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ValueNode::ValueNode(const int lineNumber, const long long number) : AbstractSyntaxTreeExpressionNode(lineNumber), number_(number), identifierNode_(nullptr) {}
+ValueNode::ValueNode(const int lineNumber, const long long number)
+    : AbstractSyntaxTreeExpressionNode(lineNumber), number_(number), identifierNode_(nullptr) {}
 
-ValueNode::ValueNode(const int lineNumber, IdentifierNode* identifierNode) : AbstractSyntaxTreeExpressionNode(lineNumber), number_(std::nullopt), identifierNode_(identifierNode) {}
+ValueNode::ValueNode(const int lineNumber, IdentifierNode* identifierNode)
+    : AbstractSyntaxTreeExpressionNode(lineNumber), number_(std::nullopt), identifierNode_(identifierNode) {}
 
 void ValueNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     assemblerGeneratorVisitor.visitValueNode(*this);

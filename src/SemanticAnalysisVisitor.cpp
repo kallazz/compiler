@@ -21,7 +21,12 @@
 #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
 #include "SymbolTable.hpp"
 
-SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded) : symbolTable_(symbolTable), isAnyMathematicalProcedureNeeded_(isAnyMathematicalProcedureNeeded), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {
+SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded)
+    : symbolTable_(symbolTable),
+      isAnyMathematicalProcedureNeeded_(isAnyMathematicalProcedureNeeded),
+      currentProcedureName_(std::nullopt),
+      forLoopsCounter_(0),
+      willNumberVariableBeModified_(false) {
     if (isAnyMathematicalProcedureNeeded) {
         symbolTable_.declareGlobalConstant(0, 0);
         symbolTable_.declareGlobalConstant(0, 1);
@@ -55,22 +60,34 @@ bool SemanticAnalysisVisitor::visitExpressionNode(const ExpressionNode& expressi
 bool SemanticAnalysisVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
         if (isProcedureBeingProcessed()) {
-            return symbolTable_.checkIfNumberVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_, *currentProcedureName_);
+            return symbolTable_.checkIfNumberVariableExistsInProcedure(
+                identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_,
+                *currentProcedureName_);
         }
-        return symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), willNumberVariableBeModified_);
+        return symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(),
+                                                              willNumberVariableBeModified_);
     }
 
     if (identifierNode.getIndexValue()) {
         if (isProcedureBeingProcessed()) {
-            return symbolTable_.checkIfArrayVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), identifierNode.getIndexValue(), *currentProcedureName_);
+            return symbolTable_.checkIfArrayVariableExistsInProcedure(
+                identifierNode.getLineNumber(), identifierNode.getName(), identifierNode.getIndexValue(),
+                *currentProcedureName_);
         }
-        return symbolTable_.checkIfArrayVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), identifierNode.getIndexValue());
+        return symbolTable_.checkIfArrayVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(),
+                                                             identifierNode.getIndexValue());
     }
 
     if (isProcedureBeingProcessed()) {
-        return symbolTable_.checkIfArrayVariableExistsInProcedure(identifierNode.getLineNumber(), identifierNode.getName(), std::nullopt, *currentProcedureName_) && symbolTable_.checkIfNumberVariableExistsInProcedure(identifierNode.getLineNumber(), *(identifierNode.getIndexName()), false, *currentProcedureName_);
+        return symbolTable_.checkIfArrayVariableExistsInProcedure(
+                   identifierNode.getLineNumber(), identifierNode.getName(), std::nullopt, *currentProcedureName_) &&
+               symbolTable_.checkIfNumberVariableExistsInProcedure(
+                   identifierNode.getLineNumber(), *(identifierNode.getIndexName()), false, *currentProcedureName_);
     }
-    return symbolTable_.checkIfArrayVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(), std::nullopt) && symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(), *(identifierNode.getIndexName()), false);
+    return symbolTable_.checkIfArrayVariableExistsInMain(identifierNode.getLineNumber(), identifierNode.getName(),
+                                                         std::nullopt) &&
+           symbolTable_.checkIfNumberVariableExistsInMain(identifierNode.getLineNumber(),
+                                                          *(identifierNode.getIndexName()), false);
 }
 
 bool SemanticAnalysisVisitor::visitValueNode(const ValueNode& valueNode) {
@@ -80,7 +97,6 @@ bool SemanticAnalysisVisitor::visitValueNode(const ValueNode& valueNode) {
 
     return valueNode.getIdentifierNode() && valueNode.getIdentifierNode()->accept(*this);
 }
-
 
 bool SemanticAnalysisVisitor::visitArgumentsDeclarationNode(const ArgumentsDeclarationNode&) {
     return true;
@@ -122,15 +138,21 @@ bool SemanticAnalysisVisitor::visitDeclarationsNode(const DeclarationsNode& decl
 
         if (declaration.arrayLowerBound && declaration.arrayUpperBound) {
             if (isProcedureBeingProcessed()) {
-                wasEvaluationSuccessful = symbolTable_.declareArrayVariableInProcedure(declaration.lineNumber, declaration.name, *declaration.arrayLowerBound, *declaration.arrayUpperBound, *currentProcedureName_);
+                wasEvaluationSuccessful = symbolTable_.declareArrayVariableInProcedure(
+                    declaration.lineNumber, declaration.name, *declaration.arrayLowerBound,
+                    *declaration.arrayUpperBound, *currentProcedureName_);
             } else {
-                wasEvaluationSuccessful = symbolTable_.declareArrayVariableInMain(declaration.lineNumber, declaration.name, *declaration.arrayLowerBound, *declaration.arrayUpperBound);
+                wasEvaluationSuccessful =
+                    symbolTable_.declareArrayVariableInMain(declaration.lineNumber, declaration.name,
+                                                            *declaration.arrayLowerBound, *declaration.arrayUpperBound);
             }
         } else {
             if (isProcedureBeingProcessed()) {
-                wasEvaluationSuccessful = symbolTable_.declareNumberVariableInProcedure(declaration.lineNumber, declaration.name, *currentProcedureName_);
+                wasEvaluationSuccessful = symbolTable_.declareNumberVariableInProcedure(
+                    declaration.lineNumber, declaration.name, *currentProcedureName_);
             } else {
-                wasEvaluationSuccessful = symbolTable_.declareNumberVariableInMain(declaration.lineNumber, declaration.name);
+                wasEvaluationSuccessful =
+                    symbolTable_.declareNumberVariableInMain(declaration.lineNumber, declaration.name);
             }
         }
 
@@ -151,10 +173,12 @@ bool SemanticAnalysisVisitor::visitForLoopNode(const ForLoopNode& forLoopNode) {
     const std::string iteratorBoundVariableName = "!ITBOUND" + std::to_string(currentForLoopIndex) + iteratorName;
 
     if (isProcedureBeingProcessed()) {
-        if (!symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorName, *currentProcedureName_, true, true)) {
+        if (!symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorName,
+                                                           *currentProcedureName_, true, true)) {
             return false;
         }
-        symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorBoundVariableName, *currentProcedureName_, false, false);
+        symbolTable_.declareNumberVariableInProcedure(forLoopNode.getLineNumber(), iteratorBoundVariableName,
+                                                      *currentProcedureName_, false, false);
     } else {
         if (!symbolTable_.declareNumberVariableInMain(forLoopNode.getLineNumber(), iteratorName, true, true)) {
             return false;
@@ -215,12 +239,14 @@ bool SemanticAnalysisVisitor::visitMainNode(const MainNode& mainNode) {
 
 bool SemanticAnalysisVisitor::visitProcedureCallNode(const ProcedureCallNode& procedureCallNode) {
     const auto& arguments = procedureCallNode.getArgumentsNode()->getArguments();
-    return symbolTable_.verifyProcedureCall(procedureCallNode.getLineNumber(), procedureCallNode.getName(), arguments, currentProcedureName_);
+    return symbolTable_.verifyProcedureCall(procedureCallNode.getLineNumber(), procedureCallNode.getName(), arguments,
+                                            currentProcedureName_);
 }
 
 bool SemanticAnalysisVisitor::visitProcedureHeadNode(const ProcedureHeadNode& procedureHeadNode) {
     const auto& argumentsDeclarations = procedureHeadNode.getArgumentsDeclarationNode()->getArgumentDeclarations();
-    return symbolTable_.declareProcedure(procedureHeadNode.getLineNumber(), procedureHeadNode.getName(), argumentsDeclarations);
+    return symbolTable_.declareProcedure(procedureHeadNode.getLineNumber(), procedureHeadNode.getName(),
+                                         argumentsDeclarations);
 }
 
 bool SemanticAnalysisVisitor::visitProceduresNode(const ProceduresNode& proceduresNode) {

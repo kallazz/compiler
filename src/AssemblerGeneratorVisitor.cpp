@@ -46,35 +46,50 @@ Registers' purpose:
     the rest - storing variables
 */
 
-
-AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable, const bool isMultiplicationProcedureNeeded, const bool isDivisionProcedureNeeded, const bool isModuloProcedureNeeded)
-    : symbolTable_(symbolTable), isMultiplicationProcedureNeeded_(isMultiplicationProcedureNeeded), isDivisionProcedureNeeded_(isDivisionProcedureNeeded), isModuloProcedureNeeded_(isModuloProcedureNeeded), outputAssemblerCode_(""), forLoopsCounter_(0), currentIdentifierAddress_(-1), isCurrentIdentifierAddressPointer_(false), isCurrentIdentifierAddressCalculatedPointerForArray_(false), currentJumpType_(""), isCurrentJumpForTrueCondition_(false), unresolvedJumpsCounter_(0), currentLineNumber_(0), currentProcedureName_(std::nullopt) {}
+AssemblerGeneratorVisitor::AssemblerGeneratorVisitor(const SymbolTable& symbolTable,
+                                                     const bool isMultiplicationProcedureNeeded,
+                                                     const bool isDivisionProcedureNeeded,
+                                                     const bool isModuloProcedureNeeded)
+    : symbolTable_(symbolTable),
+      isMultiplicationProcedureNeeded_(isMultiplicationProcedureNeeded),
+      isDivisionProcedureNeeded_(isDivisionProcedureNeeded),
+      isModuloProcedureNeeded_(isModuloProcedureNeeded),
+      outputAssemblerCode_(""),
+      forLoopsCounter_(0),
+      currentIdentifierAddress_(-1),
+      isCurrentIdentifierAddressPointer_(false),
+      isCurrentIdentifierAddressCalculatedPointerForArray_(false),
+      currentJumpType_(""),
+      isCurrentJumpForTrueCondition_(false),
+      unresolvedJumpsCounter_(0),
+      currentLineNumber_(0),
+      currentProcedureName_(std::nullopt) {}
 
 void AssemblerGeneratorVisitor::visitConditionNode(const ConditionNode& conditionNode) {
     addOrSubtract(conditionNode.getValueNode1(), conditionNode.getValueNode2(), MathematicalOperator::SUBTRACT);
     switch (conditionNode.getComparisonOperator()) {
         case ComparisonOperator::EQUAL:
-            currentJumpType_= "JZERO";
+            currentJumpType_ = "JZERO";
             isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparisonOperator::NOT_EQUAL:
-            currentJumpType_= "JZERO";
+            currentJumpType_ = "JZERO";
             isCurrentJumpForTrueCondition_ = false;
             break;
         case ComparisonOperator::GREATER_THAN:
-            currentJumpType_= "JPOS";
+            currentJumpType_ = "JPOS";
             isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparisonOperator::LESS_THAN:
-            currentJumpType_= "JNEG";
+            currentJumpType_ = "JNEG";
             isCurrentJumpForTrueCondition_ = true;
             break;
         case ComparisonOperator::GREATER_THAN_OR_EQUAL:
-            currentJumpType_= "JNEG";
+            currentJumpType_ = "JNEG";
             isCurrentJumpForTrueCondition_ = false;
             break;
         case ComparisonOperator::LESS_THAN_OR_EQUAL:
-            currentJumpType_= "JPOS";
+            currentJumpType_ = "JPOS";
             isCurrentJumpForTrueCondition_ = false;
             break;
     }
@@ -93,8 +108,10 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
         return;
     }
 
-    if (expressionNode.getMathematicalOperator() == MathematicalOperator::ADD || expressionNode.getMathematicalOperator() == MathematicalOperator::SUBTRACT) {
-        addOrSubtract(expressionNode.getValueNode1(), expressionNode.getValueNode2(), *expressionNode.getMathematicalOperator());
+    if (expressionNode.getMathematicalOperator() == MathematicalOperator::ADD ||
+        expressionNode.getMathematicalOperator() == MathematicalOperator::SUBTRACT) {
+        addOrSubtract(expressionNode.getValueNode1(), expressionNode.getValueNode2(),
+                      *expressionNode.getMathematicalOperator());
     } else if (expressionNode.getMathematicalOperator() == MathematicalOperator::MULTIPLY) {
         multiply(expressionNode.getValueNode1(), expressionNode.getValueNode2());
     } else if (expressionNode.getMathematicalOperator() == MathematicalOperator::DIVIDE) {
@@ -107,11 +124,12 @@ void AssemblerGeneratorVisitor::visitExpressionNode(const ExpressionNode& expres
 void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identifierNode) {
     const std::string variableName = getVariableNameOrIteratorName(identifierNode.getName());
 
-    isCurrentIdentifierAddressPointer_  = false;
+    isCurrentIdentifierAddressPointer_ = false;
     isCurrentIdentifierAddressCalculatedPointerForArray_ = false;
     if (!identifierNode.getIndexName() && !identifierNode.getIndexValue()) {
         if (currentProcedureName_) {
-            const auto [address, isPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            const auto [address, isPointer] =
+                symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
             currentIdentifierAddress_ = address;
             isCurrentIdentifierAddressPointer_ = isPointer;
         } else {
@@ -119,7 +137,8 @@ void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identi
         }
     } else if (identifierNode.getIndexValue()) {
         if (currentProcedureName_) {
-            const auto [arrayAddress, isPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            const auto [arrayAddress, isPointer] =
+                symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
             isCurrentIdentifierAddressPointer_ = isPointer;
 
             if (isCurrentIdentifierAddressPointer_) {
@@ -133,14 +152,17 @@ void AssemblerGeneratorVisitor::visitIdentifierNode(const IdentifierNode& identi
                 currentIdentifierAddress_ = arrayAddress + *identifierNode.getIndexValue();
             }
         } else {
-            currentIdentifierAddress_ = symbolTable_.getVariableAddressInMain(variableName) + *identifierNode.getIndexValue();
+            currentIdentifierAddress_ =
+                symbolTable_.getVariableAddressInMain(variableName) + *identifierNode.getIndexValue();
         }
     } else if (identifierNode.getIndexName()) {
         const std::string indexName = getVariableNameOrIteratorName(*identifierNode.getIndexName());
 
         if (currentProcedureName_) {
-            const auto [arrayAddress, isArrayPointer] = symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
-            const auto [arrayIndexNameAddress , isIndexPointer] = symbolTable_.getVariableAddressInProcedure(indexName, *currentProcedureName_);
+            const auto [arrayAddress, isArrayPointer] =
+                symbolTable_.getVariableAddressInProcedure(variableName, *currentProcedureName_);
+            const auto [arrayIndexNameAddress, isIndexPointer] =
+                symbolTable_.getVariableAddressInProcedure(indexName, *currentProcedureName_);
 
             const std::string addCommand = isIndexPointer ? "ADDI" : "ADD";
 
@@ -219,16 +241,18 @@ ValueNode* copyValueNode(const std::unique_ptr<ValueNode>& valueNode) {
 
         if (valueNode->getIdentifierNode()->getIndexName()) {
             const std::string identifierNodeIndexName = *valueNode->getIdentifierNode()->getIndexName();
-            return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexName));
+            return new ValueNode(
+                lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexName));
         }
         if (valueNode->getIdentifierNode()->getIndexValue()) {
             const long long identifierNodeIndexValue = *valueNode->getIdentifierNode()->getIndexValue();
-            return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexValue));
+            return new ValueNode(
+                lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName, identifierNodeIndexValue));
         }
         return new ValueNode(lineNumber, new IdentifierNode(identifierNodeLineNumber, identifierNodeName));
     }
 
-    const long long number = *valueNode->getNumber(); 
+    const long long number = *valueNode->getNumber();
 
     return new ValueNode(lineNumber, number);
 }
@@ -243,19 +267,26 @@ void AssemblerGeneratorVisitor::visitForLoopNode(const ForLoopNode& forLoopNode)
     unresolvedJumpsCounter_++;
 
     const std::string iteratorName = "!IT" + std::to_string(currentForLoopIndex) + forLoopNode.getIteratorName();
-    const std::string iteratorBoundName = "!ITBOUND" + std::to_string(currentForLoopIndex) + forLoopNode.getIteratorName();
+    const std::string iteratorBoundName =
+        "!ITBOUND" + std::to_string(currentForLoopIndex) + forLoopNode.getIteratorName();
 
     iteratorProgramNameToIteratorInternalName_.insert({forLoopNode.getIteratorName(), iteratorName});
 
-    const AssignmentNode iteratorAssignmentNode(0, new IdentifierNode(0, iteratorName), new ExpressionNode(0, copyValueNode(forLoopNode.getStartValueNode())));
-    const AssignmentNode iteratorBoundAssignmentNode(0, new IdentifierNode(0, iteratorBoundName), new ExpressionNode(0, copyValueNode(forLoopNode.getEndValueNode())));
+    const AssignmentNode iteratorAssignmentNode(0, new IdentifierNode(0, iteratorName),
+                                                new ExpressionNode(0, copyValueNode(forLoopNode.getStartValueNode())));
+    const AssignmentNode iteratorBoundAssignmentNode(
+        0, new IdentifierNode(0, iteratorBoundName),
+        new ExpressionNode(0, copyValueNode(forLoopNode.getEndValueNode())));
     iteratorAssignmentNode.accept(*this);
     iteratorBoundAssignmentNode.accept(*this);
 
-    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL);
 
-    const ComparisonOperator comparisonOperator = forLoopNode.isIteratorIncremented() ? ComparisonOperator::LESS_THAN_OR_EQUAL : ComparisonOperator::GREATER_THAN_OR_EQUAL;
-    const ConditionNode conditionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)), new ValueNode(0, new IdentifierNode(0, iteratorBoundName)), comparisonOperator);
+    const ComparisonOperator comparisonOperator = forLoopNode.isIteratorIncremented()
+                                                      ? ComparisonOperator::LESS_THAN_OR_EQUAL
+                                                      : ComparisonOperator::GREATER_THAN_OR_EQUAL;
+    const ConditionNode conditionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)),
+                                      new ValueNode(0, new IdentifierNode(0, iteratorBoundName)), comparisonOperator);
     conditionNode.accept(*this);
 
     if (isCurrentJumpForTrueCondition_) {
@@ -267,8 +298,12 @@ void AssemblerGeneratorVisitor::visitForLoopNode(const ForLoopNode& forLoopNode)
 
     forLoopNode.getCommandsNode()->accept(*this);
 
-    const MathematicalOperator mathematicalOperator = forLoopNode.isIteratorIncremented() ? MathematicalOperator::ADD : MathematicalOperator::SUBTRACT;
-    const AssignmentNode iteratorIncrementAssignmentNode(0, new IdentifierNode(0, iteratorName), new ExpressionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)), new ValueNode(0, 1), mathematicalOperator));
+    const MathematicalOperator mathematicalOperator =
+        forLoopNode.isIteratorIncremented() ? MathematicalOperator::ADD : MathematicalOperator::SUBTRACT;
+    const AssignmentNode iteratorIncrementAssignmentNode(
+        0, new IdentifierNode(0, iteratorName),
+        new ExpressionNode(0, new ValueNode(0, new IdentifierNode(0, iteratorName)), new ValueNode(0, 1),
+                           mathematicalOperator));
     iteratorIncrementAssignmentNode.accept(*this);
 
     appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(backToStartjumpIndex) + FILL_LABEL);
@@ -332,12 +367,12 @@ void AssemblerGeneratorVisitor::visitProcedureCallNode(const ProcedureCallNode& 
     const auto calledProcedureArgumentsAddresses = symbolTable_.getProcedureArgumentsAddresses(procedureName);
 
     for (size_t i = 0; i < callArguments.size(); i++) {
-
         const std::string callArgumentName = getVariableNameOrIteratorName(callArguments[i].name);
         long long callArgumentAddress;
         bool isCallArgumentPointer;
         if (currentProcedureName_) {
-            const auto [address, isPointer] = symbolTable_.getVariableAddressInProcedure(callArgumentName, *currentProcedureName_);
+            const auto [address, isPointer] =
+                symbolTable_.getVariableAddressInProcedure(callArgumentName, *currentProcedureName_);
             callArgumentAddress = address;
             isCallArgumentPointer = isPointer;
         } else {
@@ -353,7 +388,8 @@ void AssemblerGeneratorVisitor::visitProcedureCallNode(const ProcedureCallNode& 
 
     appendLineToOutputCode("SET " + std::to_string(currentLineNumber_ + 3));
     appendLineToOutputCode("STORE " + std::to_string(symbolTable_.getProcedureReturnAddress(procedureName)));
-    appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(procedureName)) + FILL_LABEL);
+    appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(procedureName)) +
+                           FILL_LABEL);
 }
 
 void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode&) {
@@ -361,7 +397,8 @@ void AssemblerGeneratorVisitor::visitProcedureHeadNode(const ProcedureHeadNode&)
 }
 
 void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proceduresNode) {
-    if (!proceduresNode.getProcedures().empty() || isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ || isModuloProcedureNeeded_) {
+    if (!proceduresNode.getProcedures().empty() || isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ ||
+        isModuloProcedureNeeded_) {
         const int jumpOverAllProceduresIndex = unresolvedJumpsCounter_;
         unresolvedJumpsCounter_++;
 
@@ -386,7 +423,8 @@ void AssemblerGeneratorVisitor::visitProceduresNode(const ProceduresNode& proced
 
             appendToOutputCode(RESULT_LABEL + std::to_string(jumpToCurrentProcedureIndex) + RESULT_LABEL);
             procedure->commandsNode->accept(*this);
-            appendLineToOutputCode("RTRN " + std::to_string(symbolTable_.getProcedureReturnAddress(*currentProcedureName_)));
+            appendLineToOutputCode("RTRN " +
+                                   std::to_string(symbolTable_.getProcedureReturnAddress(*currentProcedureName_)));
         }
 
         currentProcedureName_ = std::nullopt;
@@ -415,7 +453,7 @@ void AssemblerGeneratorVisitor::visitRepeatLoopNode(const RepeatLoopNode& repeat
     const int backToStartjumpIndex = unresolvedJumpsCounter_;
     unresolvedJumpsCounter_++;
 
-    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL);
 
     repeatLoopNode.getCommandsNode()->accept(*this);
     repeatLoopNode.getConditionNode()->accept(*this);
@@ -434,7 +472,7 @@ void AssemblerGeneratorVisitor::visitWhileLoopNode(const WhileLoopNode& whileLoo
     const int afterLoopJumpIndex = unresolvedJumpsCounter_;
     unresolvedJumpsCounter_++;
 
-    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL); 
+    appendToOutputCode(RESULT_LABEL + std::to_string(backToStartjumpIndex) + RESULT_LABEL);
 
     whileLoopNode.getConditionNode()->accept(*this);
 
@@ -463,14 +501,16 @@ void AssemblerGeneratorVisitor::visitWriteNode(const WriteNode& writeNode) {
 }
 
 void AssemblerGeneratorVisitor::setGlobalConstantValues() {
-    const auto constantInfos =  symbolTable_.getGlobalConstantInfos();
+    const auto constantInfos = symbolTable_.getGlobalConstantInfos();
     for (const auto [address, value] : constantInfos) {
         appendLineToOutputCode("SET " + std::to_string(value));
         appendLineToOutputCode("STORE " + std::to_string(address));
     }
 }
 
-void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2, const MathematicalOperator mathematicalOperator) {
+void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& valueNode1,
+                                              const std::unique_ptr<ValueNode>& valueNode2,
+                                              const MathematicalOperator mathematicalOperator) {
     const bool isSubtraction = (mathematicalOperator == MathematicalOperator::SUBTRACT);
     bool isFirstAddressPointer = false;
     bool isSecondAddressPointer = false;
@@ -510,8 +550,8 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     appendLineToOutputCode(mathematicalCommand + " " + std::to_string(secondAddress));
 }
 
-
-void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
+void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& valueNode1,
+                                         const std::unique_ptr<ValueNode>& valueNode2) {
     valueNode1->accept(*this);
 
     if (!isCurrentIdentifierAddressPointer_) {
@@ -532,13 +572,16 @@ void AssemblerGeneratorVisitor::multiply(const std::unique_ptr<ValueNode>& value
 
     appendLineToOutputCode("SET " + std::to_string(currentLineNumber_ + 3));
     appendLineToOutputCode("STORE " + std::to_string(MULTIPLICATION_PROCEDURE_RETURN_ADDRESS));
-    appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MULTIPLICATION_PROCEDURE_NAME)) + FILL_LABEL);    
+    appendLineToOutputCode("JUMP " + FILL_LABEL +
+                           std::to_string(procedureNameToJumpIndex.at(MULTIPLICATION_PROCEDURE_NAME)) + FILL_LABEL);
 }
 
-void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
+void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNode1,
+                                       const std::unique_ptr<ValueNode>& valueNode2) {
     valueNode2->accept(*this);
 
-    if (symbolTable_.checkIfGlobalConstantExists(2) && symbolTable_.getGlobalConstantAddress(2) == currentIdentifierAddress_) {
+    if (symbolTable_.checkIfGlobalConstantExists(2) &&
+        symbolTable_.getGlobalConstantAddress(2) == currentIdentifierAddress_) {
         valueNode1->accept(*this);
         const std::string loadCommand = isCurrentIdentifierAddressPointer_ ? "LOADI" : "LOAD";
         appendLineToOutputCode(loadCommand + " " + std::to_string(currentIdentifierAddress_));
@@ -562,12 +605,14 @@ void AssemblerGeneratorVisitor::divide(const std::unique_ptr<ValueNode>& valueNo
 
         appendLineToOutputCode("SET " + std::to_string(currentLineNumber_ + 3));
         appendLineToOutputCode("STORE " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
-        appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(DIVISION_PROCEDURE_NAME)) + FILL_LABEL);    
+        appendLineToOutputCode("JUMP " + FILL_LABEL +
+                               std::to_string(procedureNameToJumpIndex.at(DIVISION_PROCEDURE_NAME)) + FILL_LABEL);
         appendLineToOutputCode("LOAD 3");
     }
 }
 
-void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2) {
+void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNode1,
+                                       const std::unique_ptr<ValueNode>& valueNode2) {
     valueNode1->accept(*this);
 
     if (!isCurrentIdentifierAddressPointer_) {
@@ -588,7 +633,8 @@ void AssemblerGeneratorVisitor::modulo(const std::unique_ptr<ValueNode>& valueNo
 
     appendLineToOutputCode("SET " + std::to_string(currentLineNumber_ + 3));
     appendLineToOutputCode("STORE " + std::to_string(MODULO_PROCEDURE_RETURN_ADDRESS));
-    appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MODULO_PROCEDURE_NAME)) + FILL_LABEL);    
+    appendLineToOutputCode("JUMP " + FILL_LABEL + std::to_string(procedureNameToJumpIndex.at(MODULO_PROCEDURE_NAME)) +
+                           FILL_LABEL);
     appendLineToOutputCode("LOAD 1");
 }
 
@@ -610,7 +656,8 @@ void AssemblerGeneratorVisitor::appendLineToOutputCode(const std::string& text) 
     currentLineNumber_++;
 }
 
-std::string resolveResultLabels(const std::string& code, std::unordered_map<int, int>& jumpIndexToResultLabelLineNumber) {
+std::string resolveResultLabels(const std::string& code,
+                                std::unordered_map<int, int>& jumpIndexToResultLabelLineNumber) {
     std::string codeWithoutResultLabels = "";
     std::istringstream codeStream(code);
     std::string line;
@@ -621,7 +668,8 @@ std::string resolveResultLabels(const std::string& code, std::unordered_map<int,
         while ((resultLabelPosition = line.find(RESULT_LABEL)) != std::string::npos) {
             size_t endResultLabelPosition = line.find(RESULT_LABEL, resultLabelPosition + 2);
             if (endResultLabelPosition != std::string::npos) {
-                const int jumpIndex = std::stoi(line.substr(resultLabelPosition + 2, endResultLabelPosition - resultLabelPosition - 2));
+                const int jumpIndex =
+                    std::stoi(line.substr(resultLabelPosition + 2, endResultLabelPosition - resultLabelPosition - 2));
                 jumpIndexToResultLabelLineNumber[jumpIndex] = lineNumber;
                 line.erase(resultLabelPosition, endResultLabelPosition + 2 - resultLabelPosition);
             }
@@ -634,7 +682,8 @@ std::string resolveResultLabels(const std::string& code, std::unordered_map<int,
     return codeWithoutResultLabels;
 }
 
-std::string resolveFillLabels(const std::string& code, const std::unordered_map<int, int>& jumpIndexToResultLabelLineNumber) {
+std::string resolveFillLabels(const std::string& code,
+                              const std::unordered_map<int, int>& jumpIndexToResultLabelLineNumber) {
     std::string codeWithFilledLabels = "";
     std::istringstream codeStream(code);
     std::string line;
@@ -645,9 +694,11 @@ std::string resolveFillLabels(const std::string& code, const std::unordered_map<
         while ((fillLabelPosition = line.find(FILL_LABEL)) != std::string::npos) {
             size_t endFillLabelPosition = line.find(FILL_LABEL, fillLabelPosition + 2);
             if (endFillLabelPosition != std::string::npos) {
-                const int jumpIndex = std::stoi(line.substr(fillLabelPosition + 2, endFillLabelPosition - fillLabelPosition - 2));
+                const int jumpIndex =
+                    std::stoi(line.substr(fillLabelPosition + 2, endFillLabelPosition - fillLabelPosition - 2));
                 const int lineDifference = jumpIndexToResultLabelLineNumber.at(jumpIndex) - lineNumber;
-                line.replace(fillLabelPosition, endFillLabelPosition + 2 - fillLabelPosition, std::to_string(lineDifference));
+                line.replace(fillLabelPosition, endFillLabelPosition + 2 - fillLabelPosition,
+                             std::to_string(lineDifference));
             }
         }
 
@@ -660,9 +711,11 @@ std::string resolveFillLabels(const std::string& code, const std::unordered_map<
 
 void AssemblerGeneratorVisitor::resolveLabels() {
     std::unordered_map<int, int> jumpIndexToResultLabelLineNumber;
-    
-    const std::string codeWithoutResultLabels = resolveResultLabels(outputAssemblerCode_, jumpIndexToResultLabelLineNumber);
-    const std::string codeWithFilledLabels = resolveFillLabels(codeWithoutResultLabels, jumpIndexToResultLabelLineNumber);
+
+    const std::string codeWithoutResultLabels =
+        resolveResultLabels(outputAssemblerCode_, jumpIndexToResultLabelLineNumber);
+    const std::string codeWithFilledLabels =
+        resolveFillLabels(codeWithoutResultLabels, jumpIndexToResultLabelLineNumber);
 
     outputAssemblerCode_ = codeWithFilledLabels;
 }

@@ -3,7 +3,13 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr), symbolTable_(), isMultiplicationProcedureNeeded_(false), isDivisionProcedureNeeded_(false), isModuloProcedureNeeded_(false) {}
+AbstractSyntaxTree::AbstractSyntaxTree()
+    : proceduresNode_(nullptr),
+      mainNode_(nullptr),
+      symbolTable_(),
+      isMultiplicationProcedureNeeded_(false),
+      isDivisionProcedureNeeded_(false),
+      isModuloProcedureNeeded_(false) {}
 
 void AbstractSyntaxTree::setProceduresNode(ProceduresNode* proceduresNode) {
     proceduresNode_ = std::unique_ptr<ProceduresNode>(proceduresNode);
@@ -26,7 +32,8 @@ void AbstractSyntaxTree::setIsModuloProcedureNeeded(const bool value) {
 }
 
 bool AbstractSyntaxTree::fillSymbolTable() {
-    const bool isAnyMathematicalProcedureNeeded = (isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ || isModuloProcedureNeeded_);
+    const bool isAnyMathematicalProcedureNeeded =
+        (isMultiplicationProcedureNeeded_ || isDivisionProcedureNeeded_ || isModuloProcedureNeeded_);
 
     SemanticAnalysisVisitor semanticAnalysisVisitor(symbolTable_, isAnyMathematicalProcedureNeeded);
 
@@ -39,12 +46,13 @@ bool AbstractSyntaxTree::fillSymbolTable() {
         compilationError_ = symbolTable_.getCompilationError();
         return false;
     }
-    
+
     return true;
 }
 
 std::string AbstractSyntaxTree::generateAssembler() const {
-    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_, isMultiplicationProcedureNeeded_, isDivisionProcedureNeeded_, isModuloProcedureNeeded_);
+    AssemblerGeneratorVisitor assemblerGeneratorVisitor(symbolTable_, isMultiplicationProcedureNeeded_,
+                                                        isDivisionProcedureNeeded_, isModuloProcedureNeeded_);
 
     proceduresNode_->accept(assemblerGeneratorVisitor);
     mainNode_->accept(assemblerGeneratorVisitor);

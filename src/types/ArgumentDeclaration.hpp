@@ -11,4 +11,4 @@ struct ArgumentDeclaration {
     const ArgumentType argumentType;
 };
 
-#endif // ARGUMENT_DECLARATION_HPP
+#endif  // ARGUMENT_DECLARATION_HPP

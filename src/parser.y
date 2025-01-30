@@ -59,7 +59,8 @@
 %token <text> NAME
 %token <number> NUM
 %token EOL ADD SUB MUL DIV MOD NEQ EQ GEQ GT LEQ LT ASSIGN COLON COMMA SEMICOLON LPAREN RPAREN LBRACK RBRACK PROCEDURE
-    PROGRAM IS BEGINN END IF THEN ELSE ENDIF WHILE DO ENDWHILE REPEAT UNTIL FOR FROM TO DOWNTO ENDFOR READ WRITE INVALID T
+       PROGRAM IS BEGINN END IF THEN ELSE ENDIF WHILE DO ENDWHILE REPEAT UNTIL FOR FROM TO DOWNTO ENDFOR READ WRITE
+       INVALID T
 
 %type <number> signed_num
 
@@ -145,8 +146,14 @@ command:
     | IF condition THEN commands ENDIF { $$ = new IfNode(@1.first_line, $2, $4); }
     | WHILE condition DO commands ENDWHILE { $$ = new WhileLoopNode(@1.first_line, $2, $4); }
     | REPEAT commands UNTIL condition SEMICOLON { $$ = new RepeatLoopNode(@1.first_line, $2, $4); }
-    | FOR NAME FROM value TO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, true); free($2); }
-    | FOR NAME FROM value DOWNTO value DO commands ENDFOR { $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, false); free($2); }
+    | FOR NAME FROM value TO value DO commands ENDFOR {
+        $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, true);
+        free($2);
+    }
+    | FOR NAME FROM value DOWNTO value DO commands ENDFOR {
+        $$ = new ForLoopNode(@1.first_line, $2, $4, $6, $8, false);
+        free($2);
+    }
     | procedure_call SEMICOLON { $$ = $1; }
     | READ identifier SEMICOLON { $$ = new ReadNode(@1.first_line, $2); }
     | WRITE value SEMICOLON { $$ = new WriteNode(@1.first_line, $2); }
@@ -223,9 +230,18 @@ expression:
     value { $$ = new ExpressionNode(@1.first_line, $1); }
     | value ADD value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::ADD); }
     | value SUB value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::SUBTRACT); }
-    | value MUL value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MULTIPLY); tree.setIsMultiplicationProcedureNeeded(true); }
-    | value DIV value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::DIVIDE); tree.setIsDivisionProcedureNeeded(true); }
-    | value MOD value { $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MODULO); tree.setIsModuloProcedureNeeded(true); }
+    | value MUL value {
+        $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MULTIPLY);
+        tree.setIsMultiplicationProcedureNeeded(true);
+    }
+    | value DIV value {
+        $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::DIVIDE);
+        tree.setIsDivisionProcedureNeeded(true);
+    }
+    | value MOD value {
+        $$ = new ExpressionNode(@1.first_line, $1, $3, MathematicalOperator::MODULO);
+        tree.setIsModuloProcedureNeeded(true);
+    }
 ;
 
 condition:

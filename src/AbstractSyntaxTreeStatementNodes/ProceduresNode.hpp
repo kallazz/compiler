@@ -24,7 +24,8 @@ class ProceduresNode : public AbstractSyntaxTreeStatementNode {
 public:
     ProceduresNode(const int lineNumber);
 
-    void addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode, CommandsNode* commandsNode);
+    void addProcedure(ProcedureHeadNode* procedureHeadNode, DeclarationsNode* declarationsNode,
+                      CommandsNode* commandsNode);
     void addProcedure(ProcedureHeadNode* procedureHeadNode, CommandsNode* commandsNode);
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
@@ -36,4 +37,4 @@ private:
     std::vector<std::unique_ptr<Procedure>> procedures_;
 };
 
-#endif // PROCEDURES_NODE_HPP
+#endif  // PROCEDURES_NODE_HPP

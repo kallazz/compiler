@@ -3,7 +3,8 @@
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
 
-ProcedureHeadNode::ProcedureHeadNode(const int lineNumber, const std::string name, ArgumentsDeclarationNode* argumentsDeclarationNode)
+ProcedureHeadNode::ProcedureHeadNode(const int lineNumber, const std::string name,
+                                     ArgumentsDeclarationNode* argumentsDeclarationNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), name_(name), argumentsDeclarationNode_(argumentsDeclarationNode) {}
 
 void ProcedureHeadNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {

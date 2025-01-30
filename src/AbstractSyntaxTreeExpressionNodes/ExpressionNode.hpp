@@ -6,18 +6,13 @@
 
 #include <memory>
 
-enum class MathematicalOperator {
-    ADD,
-    SUBTRACT,
-    MULTIPLY,
-    DIVIDE,
-    MODULO
-};
+enum class MathematicalOperator { ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO };
 
 class ExpressionNode : public AbstractSyntaxTreeExpressionNode {
 public:
     ExpressionNode(const int lineNumber, ValueNode* valueNode);
-    ExpressionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const MathematicalOperator mathematicalOperator);
+    ExpressionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2,
+                   const MathematicalOperator mathematicalOperator);
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
@@ -32,4 +27,4 @@ private:
     const std::optional<MathematicalOperator> mathematicalOperator_;
 };
 
-#endif // EXPRESSION_NODE_HPP
+#endif  // EXPRESSION_NODE_HPP
