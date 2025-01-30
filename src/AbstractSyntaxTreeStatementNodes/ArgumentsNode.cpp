@@ -1,7 +1,7 @@
 #include "ArgumentsNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 ArgumentsNode::ArgumentsNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
@@ -15,12 +15,6 @@ void ArgumentsNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor)
 
 bool ArgumentsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitArgumentsNode(*this);
-}
-
-void ArgumentsNode::print() const {
-    std::cout << "ArgumentNode: ";
-
-    std::cout << '\n';
 }
 
 const std::vector<Argument>& ArgumentsNode::getArguments() const {

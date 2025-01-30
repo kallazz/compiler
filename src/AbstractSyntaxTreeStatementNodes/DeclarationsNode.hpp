@@ -2,6 +2,7 @@
 #define DECLARATIONS_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
+
 #include <optional>
 #include <string>
 #include <vector>
@@ -22,7 +23,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::vector<Declaration>& getDeclarations() const;
 

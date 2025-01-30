@@ -1,7 +1,8 @@
 #ifndef ARGUMENT_DECLARATION_HPP
 #define ARGUMENT_DECLARATION_HPP
 
-#include "enums/ArgumentType.hpp"
+#include "ArgumentType.hpp"
+
 #include <string>
 
 struct ArgumentDeclaration {

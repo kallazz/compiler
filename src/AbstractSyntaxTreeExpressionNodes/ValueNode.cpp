@@ -1,7 +1,7 @@
 #include "ValueNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 ValueNode::ValueNode(const int lineNumber, const long long number) : AbstractSyntaxTreeExpressionNode(lineNumber), number_(number), identifierNode_(nullptr) {}
 
@@ -13,12 +13,6 @@ void ValueNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) con
 
 bool ValueNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitValueNode(*this);
-}
-
-void ValueNode::print() const {
-    std::cout << "ValueNode: ";
-
-    std::cout << '\n';
 }
 
 const std::optional<long long>& ValueNode::getNumber() const {

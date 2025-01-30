@@ -1,13 +1,13 @@
 #ifndef SYMBOL_TABLE_HPP
 #define SYMBOL_TABLE_HPP
 
-#include "enums/ArgumentType.hpp"
-#include "structs/Argument.hpp"
-#include "structs/ArgumentDeclaration.hpp"
-#include "structs/CompilationError.hpp"
-#include <unordered_map>
+#include "types/Argument.hpp"
+#include "types/ArgumentDeclaration.hpp"
+#include "types/CompilationError.hpp"
+
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct VariableInfo {

@@ -3,6 +3,7 @@
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "ArgumentsNode.hpp"
+
 #include <string>
 #include <memory>
 
@@ -12,7 +13,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::string& getName() const;
     const std::unique_ptr<ArgumentsNode>& getArgumentsNode() const;

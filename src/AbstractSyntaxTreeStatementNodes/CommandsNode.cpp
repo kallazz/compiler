@@ -1,7 +1,7 @@
 #include "CommandsNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 CommandsNode::CommandsNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
@@ -15,13 +15,6 @@ void CommandsNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) 
 
 bool CommandsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitCommandsNode(*this);
-}
-
-void CommandsNode::print() const {
-    for (const auto& command : commandNodes_) {
-        command->print();
-        std::cout << '\n';
-    }
 }
 
 const std::vector<std::unique_ptr<AbstractSyntaxTreeStatementNode>>& CommandsNode::getCommandNodes() const {

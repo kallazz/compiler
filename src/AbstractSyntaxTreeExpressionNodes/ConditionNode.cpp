@@ -1,10 +1,10 @@
 #include "ConditionNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
-ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparsionOperator comparsionOperator)
-    : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode1), valueNode2_(valueNode2), comparsionOperator_(comparsionOperator) {}
+ConditionNode::ConditionNode(const int lineNumber, ValueNode* valueNode1, ValueNode* valueNode2, const ComparisonOperator comparisonOperator)
+    : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode1), valueNode2_(valueNode2), comparisonOperator_(comparisonOperator) {}
 
 void ConditionNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const {
     assemblerGeneratorVisitor.visitConditionNode(*this);
@@ -12,12 +12,6 @@ void ConditionNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor)
 
 bool ConditionNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitConditionNode(*this);
-}
-
-void ConditionNode::print() const {
-    std::cout << "ValueNode: ";
-
-    std::cout << '\n';
 }
 
 const std::unique_ptr<ValueNode>& ConditionNode::getValueNode1() const {
@@ -28,6 +22,6 @@ const std::unique_ptr<ValueNode>& ConditionNode::getValueNode2() const {
     return valueNode2_;
 }
 
-ComparsionOperator ConditionNode::getComparisonOperator() const {
-    return comparsionOperator_;
+ComparisonOperator ConditionNode::getComparisonOperator() const {
+    return comparisonOperator_;
 }

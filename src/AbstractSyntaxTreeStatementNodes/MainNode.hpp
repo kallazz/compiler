@@ -4,6 +4,7 @@
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "CommandsNode.hpp"
 #include "DeclarationsNode.hpp"
+
 #include <memory>
 
 class MainNode : public AbstractSyntaxTreeStatementNode {
@@ -13,7 +14,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::unique_ptr<DeclarationsNode>& getDeclarationsNode() const;
     const std::unique_ptr<CommandsNode>& getCommandsNode() const;

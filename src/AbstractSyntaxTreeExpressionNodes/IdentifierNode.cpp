@@ -1,7 +1,7 @@
 #include "IdentifierNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 IdentifierNode::IdentifierNode(const int lineNumber, const std::string name)
     : AbstractSyntaxTreeExpressionNode(lineNumber), name_(name), indexName_(std::nullopt), indexValue_(std::nullopt) {}
@@ -18,18 +18,6 @@ void IdentifierNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor
 
 bool IdentifierNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitIdentifierNode(*this);
-}
-
-void IdentifierNode::print() const {
-    std::cout << "IdentifierNode: " << name_;
-    if (indexName_) {
-        std::cout << "[" << *indexName_ << "]";
-    }
-    if (indexValue_) {
-        std::cout << "[" << *indexValue_ << "]";
-    }
-
-    std::cout << '\n';
 }
 
 const std::string& IdentifierNode::getName() const {

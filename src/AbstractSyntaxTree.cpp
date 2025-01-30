@@ -1,7 +1,7 @@
 #include "AbstractSyntaxTree.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 AbstractSyntaxTree::AbstractSyntaxTree() : proceduresNode_(nullptr), mainNode_(nullptr), symbolTable_(), isMultiplicationProcedureNeeded_(false), isDivisionProcedureNeeded_(false), isModuloProcedureNeeded_(false) {}
 
@@ -23,18 +23,6 @@ void AbstractSyntaxTree::setIsDivisionProcedureNeeded(const bool value) {
 
 void AbstractSyntaxTree::setIsModuloProcedureNeeded(const bool value) {
     isModuloProcedureNeeded_ = value;
-}
-
-void AbstractSyntaxTree::printNodes() const {
-    if (proceduresNode_) {
-        proceduresNode_->print();
-    }
-    std::cout << '\n';
-
-    if (mainNode_) {
-        mainNode_->print();
-    }
-    std::cout << '\n';
 }
 
 bool AbstractSyntaxTree::fillSymbolTable() {

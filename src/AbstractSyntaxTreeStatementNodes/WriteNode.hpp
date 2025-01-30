@@ -1,8 +1,9 @@
 #ifndef WRITE_NODE_HPP
 #define WRITE_NODE_HPP
 
-#include "AbstractSyntaxTreeStatementNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/ValueNode.hpp"
+#include "AbstractSyntaxTreeStatementNode.hpp"
+
 #include <memory>
 
 class WriteNode : public AbstractSyntaxTreeStatementNode {
@@ -11,7 +12,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::unique_ptr<ValueNode>& getValueNode() const;
 

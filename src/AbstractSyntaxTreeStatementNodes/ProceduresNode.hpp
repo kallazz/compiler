@@ -5,6 +5,7 @@
 #include "CommandsNode.hpp"
 #include "DeclarationsNode.hpp"
 #include "ProcedureHeadNode.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -28,7 +29,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::vector<std::unique_ptr<Procedure>>& getProcedures() const;
 

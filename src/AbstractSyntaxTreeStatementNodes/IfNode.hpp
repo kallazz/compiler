@@ -1,9 +1,10 @@
 #ifndef IF_NODE_HPP
 #define IF_NODE_HPP
 
+#include "AbstractSyntaxTreeExpressionNodes/ConditionNode.hpp"
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "CommandsNode.hpp"
-#include "AbstractSyntaxTreeExpressionNodes/ConditionNode.hpp"
+
 #include <memory>
 
 class IfNode : public AbstractSyntaxTreeStatementNode {
@@ -12,7 +13,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::unique_ptr<ConditionNode>& getConditionNode() const;
     const std::unique_ptr<CommandsNode>& getThenCommandsNode() const;

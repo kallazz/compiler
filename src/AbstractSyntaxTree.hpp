@@ -4,6 +4,7 @@
 #include "AbstractSyntaxTreeStatementNodes/MainNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/ProceduresNode.hpp"
 #include "SymbolTable.hpp"
+
 #include <memory>
 
 class AbstractSyntaxTree {
@@ -15,7 +16,6 @@ public:
     void setIsMultiplicationProcedureNeeded(const bool value);
     void setIsDivisionProcedureNeeded(const bool value);
     void setIsModuloProcedureNeeded(const bool value);
-    void printNodes() const;
     bool fillSymbolTable();
     std::string generateAssembler() const;
     CompilationError getCompilationError() const;

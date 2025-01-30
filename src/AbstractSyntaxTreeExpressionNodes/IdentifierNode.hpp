@@ -2,6 +2,7 @@
 #define IDENTIFIER_NODE_HPP
 
 #include "AbstractSyntaxTreeExpressionNode.hpp"
+
 #include <string>
 #include <optional>
 
@@ -13,7 +14,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::string& getName() const;
     const std::optional<std::string>& getIndexName() const;

@@ -3,6 +3,7 @@
 
 #include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "IdentifierNode.hpp"
+
 #include <memory>
 #include <optional>
 
@@ -13,7 +14,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::optional<long long>& getNumber() const;
     const std::unique_ptr<IdentifierNode>& getIdentifierNode() const;

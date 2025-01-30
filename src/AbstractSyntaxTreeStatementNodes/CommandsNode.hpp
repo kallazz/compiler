@@ -2,10 +2,9 @@
 #define COMMANDS_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
+
 #include <memory>
 #include <vector>
-
-class SemanticAnalysisVisitor;
 
 class CommandsNode : public AbstractSyntaxTreeStatementNode {
 public:
@@ -15,7 +14,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::vector<std::unique_ptr<AbstractSyntaxTreeStatementNode>>& getCommandNodes() const;
 

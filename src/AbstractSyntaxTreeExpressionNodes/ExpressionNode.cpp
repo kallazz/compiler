@@ -1,7 +1,7 @@
 #include "ExpressionNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 ExpressionNode::ExpressionNode(const int lineNumber, ValueNode* valueNode) : AbstractSyntaxTreeExpressionNode(lineNumber), valueNode1_(valueNode), valueNode2_(nullptr), mathematicalOperator_(std::nullopt) {}
 
@@ -14,12 +14,6 @@ void ExpressionNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor
 
 bool ExpressionNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitExpressionNode(*this);
-}
-
-void ExpressionNode::print() const {
-    std::cout << "ExpressionNode: ";
-
-    std::cout << '\n';
 }
 
 const std::unique_ptr<ValueNode>& ExpressionNode::getValueNode1() const {

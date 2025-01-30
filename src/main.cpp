@@ -1,14 +1,10 @@
 #include "../parser.tab.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 extern FILE *yyin;
 extern int yylex_destroy();
-
-void printCompilationError(const CompilationError& compilationError) {
-    std::cerr << "Error at line " << compilationError.lineNumber << ": " << compilationError.message << '\n';
-}
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {

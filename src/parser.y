@@ -1,11 +1,9 @@
 %code requires {
     #include "AbstractSyntaxTree.hpp"
-
     #include "AbstractSyntaxTreeExpressionNodes/ConditionNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ExpressionNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/IdentifierNode.hpp"
     #include "AbstractSyntaxTreeExpressionNodes/ValueNode.hpp"
-
     #include "AbstractSyntaxTreeStatementNodes/AbstractSyntaxTreeStatementNode.hpp"
     #include "AbstractSyntaxTreeStatementNodes/ArgumentsNode.hpp"
     #include "AbstractSyntaxTreeStatementNodes/ArgumentsDeclarationNode.hpp"
@@ -22,9 +20,6 @@
     #include "AbstractSyntaxTreeStatementNodes/RepeatLoopNode.hpp"
     #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
     #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
-
-    #include "enums/ComparsionOperator.hpp"
-    #include "enums/MathematicalOperator.hpp"
 
     #include <iostream>
     #include <memory>
@@ -234,12 +229,12 @@ expression:
 ;
 
 condition:
-    value EQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::EQUAL); }
-    | value NEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::NOT_EQUAL); }
-    | value GT value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::GREATER_THAN); }
-    | value LT value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::LESS_THAN); }
-    | value GEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::GREATER_THAN_OR_EQUAL); }
-    | value LEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparsionOperator::LESS_THAN_OR_EQUAL); }
+    value EQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::EQUAL); }
+    | value NEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::NOT_EQUAL); }
+    | value GT value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::GREATER_THAN); }
+    | value LT value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::LESS_THAN); }
+    | value GEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::GREATER_THAN_OR_EQUAL); }
+    | value LEQ value { $$ = new ConditionNode(@1.first_line, $1, $3, ComparisonOperator::LESS_THAN_OR_EQUAL); }
 ;
 
 value:

@@ -1,7 +1,7 @@
 #include "MainNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 MainNode::MainNode(const int lineNumber, DeclarationsNode* declarationsNode, CommandsNode* commandsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), declarationsNode_(declarationsNode), commandsNode_(commandsNode) {}
@@ -14,14 +14,6 @@ void MainNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) cons
 
 bool MainNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitMainNode(*this);
-}
-
-void MainNode::print() const {
-    std::cout << "MainNode\n";
-    if (commandsNode_) {
-        commandsNode_->print();
-        std::cout << '\n';
-    }
 }
 
 const std::unique_ptr<DeclarationsNode>& MainNode::getDeclarationsNode() const {

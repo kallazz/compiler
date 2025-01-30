@@ -2,10 +2,10 @@
 #define ARGUMENTS_NODE_HPP
 
 #include "AbstractSyntaxTreeStatementNode.hpp"
-#include "structs/Argument.hpp"
+#include "types/Argument.hpp"
+
 #include <string>
 #include <vector>
-
 
 class ArgumentsNode : public AbstractSyntaxTreeStatementNode {
 public:
@@ -15,7 +15,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::vector<Argument>& getArguments() const;
 

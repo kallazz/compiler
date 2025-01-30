@@ -13,7 +13,6 @@ public:
 
     virtual void accept(AssemblerGeneratorVisitor&) const = 0;
     virtual bool accept(SemanticAnalysisVisitor&) const = 0;
-    virtual void print() const = 0;
 
 private:
     const int lineNumber_;

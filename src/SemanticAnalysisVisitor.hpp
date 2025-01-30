@@ -1,9 +1,10 @@
 #ifndef SEMANTIC_ANALYSIS_VISITOR_HPP
 #define SEMANTIC_ANALYSIS_VISITOR_HPP
 
-#include "SymbolTable.hpp"
 #include <optional>
 #include <string>
+
+class SymbolTable;
 
 class ConditionNode;
 class ExpressionNode;

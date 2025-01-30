@@ -1,9 +1,10 @@
 #ifndef FOR_LOOP_NODE_HPP
 #define FOR_LOOP_NODE_HPP
 
+#include "AbstractSyntaxTreeExpressionNodes/ValueNode.hpp"
 #include "AbstractSyntaxTreeStatementNode.hpp"
 #include "CommandsNode.hpp"
-#include "AbstractSyntaxTreeExpressionNodes/ValueNode.hpp"
+
 #include <memory>
 #include <string>
 
@@ -13,7 +14,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::string& getIteratorName() const;
     const std::unique_ptr<ValueNode>& getStartValueNode() const;

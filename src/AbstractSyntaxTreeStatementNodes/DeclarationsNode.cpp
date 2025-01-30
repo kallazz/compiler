@@ -1,7 +1,7 @@
 #include "DeclarationsNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 DeclarationsNode::DeclarationsNode(const int lineNumber) : AbstractSyntaxTreeStatementNode(lineNumber) {}
 
@@ -19,19 +19,6 @@ void DeclarationsNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisit
 
 bool DeclarationsNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitDeclarationsNode(*this);
-}
-
-void DeclarationsNode::print() const {
-    std::cout << "DeclarationsNode: ";
-    for (const auto& declaration : declarations_) {
-        std::cout << declaration.name;
-        if (declaration.arrayLowerBound && declaration.arrayUpperBound) {
-            std::cout << "[" << *declaration.arrayLowerBound << ":" << *declaration.arrayUpperBound << "]";
-        }
-        std::cout << " ";
-    }
-
-    std::cout << '\n';
 }
 
 const std::vector<Declaration>& DeclarationsNode::getDeclarations() const {

@@ -70,9 +70,8 @@ private:
     void divide(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     void modulo(const std::unique_ptr<ValueNode>& valueNode1, const std::unique_ptr<ValueNode>& valueNode2);
     std::string getVariableNameOrIteratorName(const std::string& variableName);
-    void writeToOutputFile(const std::string& text);
-    void writeLineToOutputFile(const std::string& text);
-    void writeCommentLineToOutputFile(const std::string& text);
+    void appendToOutputCode(const std::string& text);
+    void appendLineToOutputCode(const std::string& text);
     void resolveLabels();
     void generateMultiplicationProcedure();
     void generateDivisionProcedure();
@@ -82,7 +81,6 @@ private:
     const bool isMultiplicationProcedureNeeded_;
     const bool isDivisionProcedureNeeded_;
     const bool isModuloProcedureNeeded_;
-    const bool shouldWriteComments_;
     std::string outputAssemblerCode_;
     int forLoopsCounter_;
     long long currentIdentifierAddress_;

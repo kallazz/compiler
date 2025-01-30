@@ -1,4 +1,5 @@
 #include "SymbolTable.hpp"
+
 #include <cmath>
 
 constexpr long long FIRST_AVAILABLE_ADDRESS = 13;

@@ -3,9 +3,7 @@ import subprocess
 
 import pytest
 
-from .config import INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME
-
-_CORRECT_PROGRAMS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "correct-programs"))
+from .config import INPUT_FILENAME, MAKEFILE_PATH, OUTPUT_FILENAME, CORRECT_PROGRAMS_DIR
 
 
 def _run_symbol_table_error_test(input_code: str, expected_error_message: str) -> None:
@@ -355,9 +353,9 @@ def test_memory_limit_exceeded():
     _run_symbol_table_error_test(input_code, expected_error_message)
 
 
-@pytest.mark.parametrize("correct_program_file_name", os.listdir(_CORRECT_PROGRAMS_DIR))
+@pytest.mark.parametrize("correct_program_file_name", os.listdir(CORRECT_PROGRAMS_DIR))
 def test_correct_programs(correct_program_file_name):
-    with open(os.path.join(_CORRECT_PROGRAMS_DIR, correct_program_file_name), "r") as file:
+    with open(os.path.join(CORRECT_PROGRAMS_DIR, correct_program_file_name), "r") as file:
         input_code = file.read()
 
     _run_symbol_table_working_test(input_code)

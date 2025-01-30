@@ -6,6 +6,7 @@
 *.out
 *.o
 *.txt
+*.mr
 
 lex.yy.c
 parser.tab.*

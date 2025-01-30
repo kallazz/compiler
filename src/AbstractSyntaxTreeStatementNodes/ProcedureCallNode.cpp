@@ -1,7 +1,7 @@
 #include "ProcedureCallNode.hpp"
+
 #include "AssemblerGeneratorVisitor.hpp"
 #include "SemanticAnalysisVisitor.hpp"
-#include <iostream>
 
 ProcedureCallNode::ProcedureCallNode(const int lineNumber, const std::string name, ArgumentsNode* argumentsNode)
     : AbstractSyntaxTreeStatementNode(lineNumber), name_(name), argumentsNode_(argumentsNode) {}
@@ -12,10 +12,6 @@ void ProcedureCallNode::accept(AssemblerGeneratorVisitor& assemblerGeneratorVisi
 
 bool ProcedureCallNode::accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const {
     return semanticAnalysisVisitor.visitProcedureCallNode(*this);
-}
-
-void ProcedureCallNode::print() const {
-    std::cout << "ProcedureCallNode";
 }
 
 const std::string& ProcedureCallNode::getName() const {

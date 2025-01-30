@@ -1,4 +1,5 @@
 #include "SemanticAnalysisVisitor.hpp"
+
 #include "AbstractSyntaxTreeExpressionNodes/ConditionNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/ExpressionNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/IdentifierNode.hpp"
@@ -18,6 +19,7 @@
 #include "AbstractSyntaxTreeStatementNodes/RepeatLoopNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/WhileLoopNode.hpp"
 #include "AbstractSyntaxTreeStatementNodes/WriteNode.hpp"
+#include "SymbolTable.hpp"
 
 SemanticAnalysisVisitor::SemanticAnalysisVisitor(SymbolTable& symbolTable, const bool isAnyMathematicalProcedureNeeded) : symbolTable_(symbolTable), isAnyMathematicalProcedureNeeded_(isAnyMathematicalProcedureNeeded), currentProcedureName_(std::nullopt), forLoopsCounter_(0), willNumberVariableBeModified_(false) {
     if (isAnyMathematicalProcedureNeeded) {

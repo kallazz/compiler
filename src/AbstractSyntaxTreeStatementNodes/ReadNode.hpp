@@ -1,8 +1,9 @@
 #ifndef READ_NODE_HPP
 #define READ_NODE_HPP
 
-#include "AbstractSyntaxTreeStatementNode.hpp"
 #include "AbstractSyntaxTreeExpressionNodes/IdentifierNode.hpp"
+#include "AbstractSyntaxTreeStatementNode.hpp"
+
 #include <memory>
 
 class ReadNode : public AbstractSyntaxTreeStatementNode {
@@ -11,7 +12,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::unique_ptr<IdentifierNode>& getIdentifierNode() const;
 

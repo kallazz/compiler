@@ -3,8 +3,16 @@
 
 #include "AbstractSyntaxTreeExpressionNode.hpp"
 #include "ValueNode.hpp"
-#include "enums/MathematicalOperator.hpp"
+
 #include <memory>
+
+enum class MathematicalOperator {
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE,
+    MODULO
+};
 
 class ExpressionNode : public AbstractSyntaxTreeExpressionNode {
 public:
@@ -13,7 +21,6 @@ public:
 
     void accept(AssemblerGeneratorVisitor& assemblerGeneratorVisitor) const override;
     bool accept(SemanticAnalysisVisitor& semanticAnalysisVisitor) const override;
-    void print() const override;
 
     const std::unique_ptr<ValueNode>& getValueNode1() const;
     const std::unique_ptr<ValueNode>& getValueNode2() const;
