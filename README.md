@@ -1,12 +1,11 @@
-# Compiler
+# Imperative Language Compiler
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project focuses on developing a compiler for a simple imperative language.
-The task was part of the course **"Formal Languages and Translation Techniques"** run by **Professor Maciej Gębala** at **Wrocław University of Science and Technology** during the **2024/2025 academic year**.
+This compiler is designed to translate source code written in a simple imperative language into assembly instructions, which are then executed by a virtual machine.
+It was developed as part of the **"Formal Languages and Translation Techniques"** course, taught by **Professor Maciej Gębala** at **Wrocław University of Science and Technology** during the **2024/2025 academic year**.
 
-The compiler translates source code into assembly instructions, which are then executed by the virtual machine.
-The compiler was implemented in **C++**, using **Flex** for lexical analysis and **Bison** for parsing. **Python** was used for testing.
+The compiler is implemented in **C++**, using **Flex** for lexical analysis and **Bison** for parsing, while **Python** is used for testing.
 
 ## 🔗Quick Links
 - [Language Description](#language-description)
@@ -26,7 +25,7 @@ The language to be compiled is a simple imperative programming language with the
 - **Input/Output**: Reading integer values from standard input and writing them to standard output
 - **Comments**: Lines starting with `#` are considered comments and are ignored by the compiler
 
-A more complete description of the language (in Polish) can be found in the [specification](specification.pdf) file.
+A more complete description of the language (in Polish) can be found in the [specification](Specification.pdf) file.
 
 Example program:
 ```
