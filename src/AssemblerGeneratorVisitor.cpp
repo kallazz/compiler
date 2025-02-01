@@ -722,6 +722,47 @@ void AssemblerGeneratorVisitor::resolveLabels() {
     outputAssemblerCode_ = codeWithFilledLabels;
 }
 
+/*
+The below assembler code was based on this procedure:
+
+PROCEDURE multiply(a, b, result) IS
+    temp, is_a_negative, is_b_negative
+BEGIN
+    result := 0;
+
+    IF a < 0 THEN
+        is_a_negative := 1;
+        a := 0 - a;
+    ELSE
+        is_a_negative := 0;
+    ENDIF
+
+    IF b < 0 THEN
+        is_b_negative := 1;
+        b := 0 - b;
+    ELSE
+        is_b_negative := 0;
+    ENDIF
+
+    WHILE b > 0 DO
+        temp := b / 2;
+        temp := temp + temp;
+
+        IF temp != b THEN
+            result := result + a;
+        ENDIF
+
+        a := a + a;
+        b := b / 2;
+    ENDWHILE
+
+    temp := is_a_negative + is_b_negative;
+
+    IF temp = 1 THEN
+        result := 0 - result;
+    ENDIF
+END
+*/
 void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
     const int jumpToCurrentProcedureIndex = unresolvedJumpsCounter_;
     unresolvedJumpsCounter_++;
@@ -782,6 +823,58 @@ void AssemblerGeneratorVisitor::generateMultiplicationProcedure() {
     appendLineToOutputCode("RTRN " + std::to_string(MULTIPLICATION_PROCEDURE_RETURN_ADDRESS));
 }
 
+/*
+The below assembler code was based on this procedure:
+
+PROCEDURE divide(a, b, result) IS
+a, b, result, power, temp_divisor, is_a_negative, is_b_negative
+BEGIN
+    result := 0;
+
+    IF b != 0 THEN
+        IF a < 0 THEN
+            is_a_negative := 1;
+            a := 0 - a;
+        ELSE
+            is_a_negative := 0;
+        ENDIF
+
+        IF b < 0 THEN
+            is_b_negative := 1;
+            b := 0 - b;
+        ELSE
+            is_b_negative := 0;
+        ENDIF
+
+        power := 1;
+        temp_divisor := b;
+
+        WHILE temp_divisor <= a DO
+            temp_divisor := temp_divisor + temp_divisor;
+            power := power + power;
+        ENDWHILE
+
+        WHILE power > 1 DO
+            temp_divisor := temp_divisor / 2;
+            power := power / 2;
+
+            IF a >= temp_divisor THEN
+                a := a - temp_divisor;
+                result := result + power;
+            ENDIF
+        ENDWHILE
+
+        temp_divisor := is_a_negative + is_b_negative;
+
+        IF temp_divisor = 1 THEN
+            result := 0 - result;
+            IF a != 0 THEN
+                result := result - 1;
+            ENDIF
+        ENDIF
+    ENDIF
+END
+*/
 void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     const int jumpToCurrentProcedureIndex = unresolvedJumpsCounter_;
     unresolvedJumpsCounter_++;
@@ -866,6 +959,58 @@ void AssemblerGeneratorVisitor::generateDivisionProcedure() {
     appendLineToOutputCode("RTRN " + std::to_string(DIVISION_PROCEDURE_RETURN_ADDRESS));
 }
 
+/*
+The below assembler code was based on this procedure:
+
+PROCEDURE modulo(a, b) IS # a is the result
+power, temp_divisor, initial_b, is_a_negative, is_b_negative
+BEGIN
+    IF b != 0 THEN
+        IF a < 0 THEN
+            is_a_negative := 1;
+            a := 0 - a;
+        ELSE
+            is_a_negative := 0;
+        ENDIF
+
+        IF b < 0 THEN
+            is_b_negative := 1;
+            b := 0 - b;
+        ELSE
+            is_b_negative := 0;
+        ENDIF
+
+        initial_b := b;
+
+        power := 1;
+        temp_divisor := b;
+
+        WHILE temp_divisor <= a DO
+            temp_divisor := temp_divisor + temp_divisor;
+            power := power + power;
+        ENDWHILE
+
+        WHILE power > 1 DO
+            temp_divisor := temp_divisor / 2;
+            power := power / 2;
+
+            IF a >= temp_divisor THEN
+                a := a - temp_divisor;
+            ENDIF
+        ENDWHILE
+
+        IF is_a_negative = 1 THEN
+            a := initial_b - a;
+        ENDIF
+
+        IF is_b_negative = 1 THEN
+            a := a - initial_b;
+        ENDIF
+    ELSE
+        a := 0;
+    ENDIF
+END
+*/
 void AssemblerGeneratorVisitor::generateModuloProcedure() {
     const int jumpToCurrentProcedureIndex = unresolvedJumpsCounter_;
     unresolvedJumpsCounter_++;
