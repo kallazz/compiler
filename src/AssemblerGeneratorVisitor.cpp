@@ -513,7 +513,6 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
                                               const std::unique_ptr<ValueNode>& valueNode2,
                                               const MathematicalOperator mathematicalOperator) {
     const bool isSubtraction = (mathematicalOperator == MathematicalOperator::SUBTRACT);
-    bool isFirstAddressPointer = false;
     bool isSecondAddressPointer = false;
 
     valueNode2->accept(*this);
@@ -529,14 +528,9 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     }
 
     valueNode1->accept(*this);
-    long long firstAddress = currentIdentifierAddress_;
 
-    if (isCurrentIdentifierAddressPointer_) {
-        isFirstAddressPointer = true;
-    }
-
-    const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
-    appendLineToOutputCode(loadCommand + " " + std::to_string(firstAddress));
+    const std::string loadCommand = isCurrentIdentifierAddressPointer_ ? "LOADI" : "LOAD";
+    appendLineToOutputCode(loadCommand + " " + std::to_string(currentIdentifierAddress_));
 
     const std::optional<long long> zeroAddress = symbolTable_.getGlobalConstantAddress(0);
     if (!(zeroAddress && zeroAddress == secondAddress)) {
