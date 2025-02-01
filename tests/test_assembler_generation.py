@@ -87,6 +87,8 @@ def test_assignment(input_code, expected_output_numbers):
         ("PROGRAM IS x BEGIN x := 15 + 17; WRITE x; END", [32]),
         ("PROGRAM IS x BEGIN x := 15 + 0; WRITE x; END", [15]),
         ("PROGRAM IS x, y, z BEGIN y := 3; z := 4; x := y + z; WRITE x; END", [7]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[2] := 4; x := y[n] + z[2]; WRITE x; END", [7]),
+        ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[5] := 3; z[n] := 4; x := y[5] + z[n]; WRITE x; END", [7]),
         ("PROGRAM IS x, y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x := y[n] + z[n]; WRITE x; END", [7]),
         (
             "PROGRAM IS x[-5:-3], y[1:10], z[1:10], n BEGIN n := 5; y[n] := 3; z[n] := 4; x[-4] := y[n] + z[n]; WRITE x[-4]; END",

@@ -516,18 +516,6 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
     bool isFirstAddressPointer = false;
     bool isSecondAddressPointer = false;
 
-    valueNode1->accept(*this);
-    long long firstAddress = currentIdentifierAddress_;
-
-    if (isCurrentIdentifierAddressPointer_) {
-        isFirstAddressPointer = true;
-
-        if (isCurrentIdentifierAddressCalculatedPointerForArray_) {
-            appendLineToOutputCode("STORE 2");
-            firstAddress = 2;
-        }
-    }
-
     valueNode2->accept(*this);
     long long secondAddress = currentIdentifierAddress_;
 
@@ -538,6 +526,13 @@ void AssemblerGeneratorVisitor::addOrSubtract(const std::unique_ptr<ValueNode>& 
             appendLineToOutputCode("STORE 1");
             secondAddress = 1;
         }
+    }
+
+    valueNode1->accept(*this);
+    long long firstAddress = currentIdentifierAddress_;
+
+    if (isCurrentIdentifierAddressPointer_) {
+        isFirstAddressPointer = true;
     }
 
     const std::string loadCommand = isFirstAddressPointer ? "LOADI" : "LOAD";
